@@ -32,7 +32,7 @@ async def get_dataset_info(request, dataset):
     if req.reason == 'OK':
         json_info = req.json()
         if json_info is not None:
-            id = req.json()['_id']
+            id = json_info['_id']
             return response.redirect(f"https://gui.dandiarchive.org/#/folder/{id}")
     return NotFound()
 
@@ -43,7 +43,7 @@ async def get_dataset_version_info(request, dataset, version):
     if req.reason == 'OK':
         json_info = req.json()
         if json_info is not None:
-            id = req.json()['_id']
+            id = json_info['_id']
             return response.redirect(f"https://gui.dandiarchive.org/#/folder/{id}")
     return NotFound()
 
