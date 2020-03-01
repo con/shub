@@ -3,8 +3,9 @@ import asyncio
 from sanic import Sanic
 from sanic.log import logger, error_logger, access_logger
 from sanic import response
-from sanic.response import json, text
 from sanic_cors import CORS, cross_origin
+import requests
+from sanic.exceptions import NotFound
 
 app = Sanic("redirector")
 CORS(app)
@@ -22,15 +23,25 @@ async def main(request):
 async def about(request):
     return response.redirect("https://www.dandiarchive.org")
 
-@app.route("/<dataset:int>")
+@app.route("/dandiset/<dataset:int>")
 async def get_dataset_info(request, dataset):
     """Redirect to gui with retrieved folder ID
     """
-    return response.json({"dataset": dataset, "version": "staged"})
+    req = requests.get(
+        f"https://girder.dandiarchive.org/api/v1/dandi?id={dataset:06d}")
+    if req.reason == 'OK':
+        id = req.json()['_id']
+        return response.redirect(f"https://gui.dandiarchive.org/#/folder/{id}")
+    return NotFound()
 
-@app.route("/<dataset:int>/<version>")
+@app.route("/dandiset/<dataset:int>/<version>")
 async def get_dataset_version_info(request, dataset, version):
-    return response.json({"dataset": dataset, "version": version})
+    req = requests.get(
+        f"https://girder.dandiarchive.org/api/v1/dandi?id={dataset:06d}")
+    if req.reason == 'OK':
+        id = req.json()['_id']
+        return response.redirect(f"https://gui.dandiarchive.org/#/folder/{id}")
+    return NotFound()
 
 if __name__ == "__main__":
     logger.info("Starting backend")
