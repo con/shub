@@ -34,7 +34,7 @@ async def get_dataset_info(request, dataset):
         if json_info is not None:
             id = json_info['_id']
             return response.redirect(f"https://gui.dandiarchive.org/#/folder/{id}")
-    return NotFound()
+    return NotFound(f"dandi:{dataset} not found.")
 
 @app.route("/dandiset/<dataset:int>/<version>")
 async def get_dataset_version_info(request, dataset, version):
@@ -45,7 +45,7 @@ async def get_dataset_version_info(request, dataset, version):
         if json_info is not None:
             id = json_info['_id']
             return response.redirect(f"https://gui.dandiarchive.org/#/folder/{id}")
-    return NotFound()
+    return NotFound(f"dandi:{dataset}/{version} not found.")
 
 if __name__ == "__main__":
     logger.info("Starting backend")
