@@ -5,7 +5,7 @@ from sanic.log import logger, error_logger, access_logger
 from sanic import response
 from sanic_cors import CORS, cross_origin
 import requests
-from sanic.exceptions import NotFound
+from sanic.exceptions import abort
 
 app = Sanic("redirector")
 CORS(app)
@@ -34,7 +34,7 @@ async def get_dataset_info(request, dataset):
         if json_info is not None:
             id = json_info['_id']
             return response.redirect(f"https://gui.dandiarchive.org/#/folder/{id}")
-    return NotFound(f"dandi:{dataset} not found.")
+    return response.text(f"dandi:{dataset:06d} not found.", status=404)
 
 @app.route("/dandiset/<dataset:int>/<version>")
 async def get_dataset_version_info(request, dataset, version):
@@ -45,7 +45,7 @@ async def get_dataset_version_info(request, dataset, version):
         if json_info is not None:
             id = json_info['_id']
             return response.redirect(f"https://gui.dandiarchive.org/#/folder/{id}")
-    return NotFound(f"dandi:{dataset}/{version} not found.")
+    return response.text(f"dandi:{dataset:06d}/{version} not found.", status=404)
 
 if __name__ == "__main__":
     logger.info("Starting backend")
