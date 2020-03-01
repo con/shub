@@ -17,7 +17,7 @@ async def init(app, loop):
 
 @app.route("/")
 async def main(request):
-    return response.redirect("https://gui.dandiarchive.org/")
+    return response.redirect("https://www.dandiarchive.org/")
 
 @app.route("/about")
 async def about(request):
