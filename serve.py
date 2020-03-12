@@ -28,7 +28,7 @@ async def get_dataset_info(request, dataset):
     """Redirect to gui with retrieved folder ID
     """
     req = requests.get(
-        f"https://girder.dandiarchive.org/api/v1/dandi?id={dataset:06d}")
+        f"https://girder.dandiarchive.org/api/v1/dandi?identifier={dataset:06d}")
     if req.reason == 'OK':
         json_info = req.json()
         if json_info is not None:
@@ -39,7 +39,7 @@ async def get_dataset_info(request, dataset):
 @app.route("/dandiset/<dataset:int>/<version>")
 async def get_dataset_version_info(request, dataset, version):
     req = requests.get(
-        f"https://girder.dandiarchive.org/api/v1/dandi?id={dataset:06d}")
+        f"https://girder.dandiarchive.org/api/v1/dandi?identifier={dataset:06d}")
     if req.reason == 'OK':
         json_info = req.json()
         if json_info is not None:
