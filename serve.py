@@ -23,6 +23,13 @@ async def main(request):
 async def about(request):
     return response.redirect("https://www.dandiarchive.org")
 
+
+@app.route("/dandiset/drafts")
+async def get_draft_collection(request):
+    """Redirect to gui draft collection
+    """
+    return response.redirect("https://gui.dandiarchive.org/#/collection/5e59bb0af19e820ab6ea6c62")
+
 @app.route("/dandiset/<dataset:int>")
 async def get_dataset_info(request, dataset):
     """Redirect to gui with retrieved folder ID
@@ -33,7 +40,7 @@ async def get_dataset_info(request, dataset):
         json_info = req.json()
         if json_info is not None:
             id = json_info['_id']
-            return response.redirect(f"https://gui.dandiarchive.org/#/folder/{id}")
+            return response.redirect(f"https://gui.dandiarchive.org/#/dandiset-meta/{id}")
     return response.text(f"dandi:{dataset:06d} not found.", status=404)
 
 @app.route("/dandiset/<dataset:int>/<version>")
@@ -44,7 +51,7 @@ async def get_dataset_version_info(request, dataset, version):
         json_info = req.json()
         if json_info is not None:
             id = json_info['_id']
-            return response.redirect(f"https://gui.dandiarchive.org/#/folder/{id}")
+            return response.redirect(f"https://gui.dandiarchive.org/#/dandiset-meta/{id}")
     return response.text(f"dandi:{dataset:06d}/{version} not found.", status=404)
 
 if __name__ == "__main__":
