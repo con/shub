@@ -23,6 +23,13 @@ async def main(request):
 async def about(request):
     return response.redirect("https://www.dandiarchive.org")
 
+
+@app.route("/dandiset/drafts")
+async def get_draft_collection(request):
+    """Redirect to gui draft collection
+    """
+    return response.redirect("https://gui.dandiarchive.org/#/collection/5e59bb0af19e820ab6ea6c62")
+
 @app.route("/dandiset/<dataset:int>")
 async def get_dataset_info(request, dataset):
     """Redirect to gui with retrieved folder ID
