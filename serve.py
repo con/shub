@@ -6,7 +6,7 @@ from sanic import response
 from sanic_cors import CORS
 import requests
 
-production = True and 'DEV628cc89a6444' not in os.environ
+production = 'DEV628cc89a6444' not in os.environ
 sem = None
 basedir = os.environ["HOME"] if production else os.getcwd()
 logdir = os.path.join(basedir, "redirector")
