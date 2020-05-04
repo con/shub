@@ -84,19 +84,19 @@ async def about(request):
 
 
 @app.route("/dandiset")
-async def get_public_dashboard(request):
+async def goto_public_dashboard(request):
     """Redirect to gui draft collection
     """
     return response.redirect("https://gui.dandiarchive.org/#/dandiset")
 
 
 @app.route("/portal")
-async def about(request):
+async def goto_portal(request):
     return response.redirect("https://gui.dandiarchive.org")
 
 
 @app.route("/dandiset/<dataset:int>")
-async def get_dataset_info(request, dataset):
+async def goto_dandiset(request, dataset):
     """Redirect to gui with retrieved folder ID
     """
     req = requests.get(
@@ -110,7 +110,7 @@ async def get_dataset_info(request, dataset):
 
 
 @app.route("/dandiset/<dataset:int>/<version>")
-async def get_dataset_version_info(request, dataset, version):
+async def goto_dandiset_version(request, dataset, version):
     req = requests.get(
         f"https://girder.dandiarchive.org/api/v1/dandi/{dataset:06d}")
     if req.reason == 'OK':
