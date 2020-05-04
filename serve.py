@@ -12,6 +12,13 @@ basedir = os.environ["HOME"] if production else os.getcwd()
 logdir = os.path.join(basedir, "redirector")
 if not os.path.exists(logdir):
     os.makedirs(logdir, exist_ok=True)
+
+handler_dict = {"class": "logging.handlers.TimedRotatingFileHandler",
+                "when": 'D',
+                "interval": 7,
+                "backupCount": 10,
+                "formatter": "generic",
+                }
 LOG_SETTINGS = dict(
     version=1,
     disable_existing_loggers=False,
@@ -31,30 +38,12 @@ LOG_SETTINGS = dict(
         },
     },
     handlers={
-        "consolefile": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
-            "when": 'D',
-            "interval": 7,
-            "backupCount": 10,
-            'filename': os.path.join(logdir, "console.log"),
-            "formatter": "generic",
-        },
-        "error_consolefile": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
-            "when": 'D',
-            "interval": 7,
-            "backupCount": 10,
-            'filename': os.path.join(logdir, "error.log"),
-            "formatter": "generic",
-        },
-        "access_consolefile": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
-            "when": 'D',
-            "interval": 7,
-            "backupCount": 10,
-            'filename': os.path.join(logdir, "access.log"),
-            "formatter": "access",
-        },
+        "consolefile": {**handler_dict,
+                        **{'filename': os.path.join(logdir, "console.log")}},
+        "error_consolefile": {**handler_dict,
+                              **{'filename': os.path.join(logdir, "error.log")}},
+        "access_consolefile": {**handler_dict,
+                               **{'filename': os.path.join(logdir, "access.log")}},
     },
     formatters={
         "generic": {
