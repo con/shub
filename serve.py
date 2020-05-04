@@ -6,6 +6,12 @@ from sanic import response
 from sanic_cors import CORS
 import requests
 
+production = True and 'DEV628cc89a6444' not in os.environ
+sem = None
+basedir = os.environ["HOME"] if production else os.getcwd()
+logdir = os.path.join(basedir, "redirector")
+if not os.path.exists(logdir):
+    os.makedirs(logdir, exist_ok=True)
 LOG_SETTINGS = dict(
     version=1,
     disable_existing_loggers=False,
@@ -30,7 +36,7 @@ LOG_SETTINGS = dict(
             "when": 'D',
             "interval": 7,
             "backupCount": 10,
-            'filename': os.path.join(basedir, "redirector", "console.log"),
+            'filename': os.path.join(logdir, "console.log"),
             "formatter": "generic",
         },
         "error_consolefile": {
@@ -38,7 +44,7 @@ LOG_SETTINGS = dict(
             "when": 'D',
             "interval": 7,
             "backupCount": 10,
-            'filename': os.path.join(basedir, "redirector", "error.log"),
+            'filename': os.path.join(logdir, "error.log"),
             "formatter": "generic",
         },
         "access_consolefile": {
@@ -46,7 +52,7 @@ LOG_SETTINGS = dict(
             "when": 'D',
             "interval": 7,
             "backupCount": 10,
-            'filename': os.path.join(basedir, "redirector", "access.log"),
+            'filename': os.path.join(logdir, "access.log"),
             "formatter": "access",
         },
     },
@@ -64,10 +70,6 @@ LOG_SETTINGS = dict(
         },
     },
 )
-
-production = True and 'DEV628cc89a6444' not in os.environ
-sem = None
-basedir = os.environ["HOME"] if production else os.getcwd()
 
 if production:
     app = Sanic("redirector", log_config=LOG_SETTINGS)
@@ -99,11 +101,9 @@ async def get_public_dashboard(request):
     return response.redirect("https://gui.dandiarchive.org/#/dandiset")
 
 
-@app.route("/dandiset/drafts")
-async def get_draft_collection(request):
-    """Redirect to gui draft collection
-    """
-    return response.redirect("/dandiset", status=301)
+@app.route("/portal")
+async def about(request):
+    return response.redirect("https://gui.dandiarchive.org")
 
 
 @app.route("/dandiset/<dataset:int>")
