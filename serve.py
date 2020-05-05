@@ -90,11 +90,6 @@ async def goto_public_dashboard(request):
     return response.redirect("https://gui.dandiarchive.org/#/dandiset")
 
 
-@app.route("/portal")
-async def goto_portal(request):
-    return response.redirect("https://gui.dandiarchive.org")
-
-
 @app.route("/dandiset/<dataset:int>")
 async def goto_dandiset(request, dataset):
     """Redirect to gui with retrieved folder ID
