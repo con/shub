@@ -67,30 +67,45 @@ else:
 CORS(app)
 
 
+def make_header(url):
+    import time
+    gmtnow = time.strftime("%a, %d %b %Y %I:%M:%S %p %Z", time.gmtime())
+    header = {"location": url,
+              "content-type": "text/plain;charset=UTF-8",
+              "content-length": 0,
+              "date": gmtnow,
+              "alt-svc": "clear"}
+    return header
+
+
 @app.listener("before_server_start")
 async def init(app, loop):
     global sem
     sem = asyncio.Semaphore(100)
 
 
-@app.route("/")
+@app.route("/", methods=['GET'])
 async def main(request):
+    if request.method == "HEAD":
+        pass
     return response.redirect("https://gui.dandiarchive.org/")
 
 
-@app.route("/about")
+@app.route("/about", methods=['GET'])
 async def about(request):
+    if request.method == "HEAD":
+        pass
     return response.redirect("https://www.dandiarchive.org")
 
 
-@app.route("/dandiset")
+@app.route("/dandiset", methods=['GET'])
 async def goto_public_dashboard(request):
     """Redirect to gui draft collection
     """
     return response.redirect("https://gui.dandiarchive.org/#/dandiset")
 
 
-@app.route("/dandiset/<dataset:int>")
+@app.route("/dandiset/<dataset:int>", methods=['GET', 'HEAD'])
 async def goto_dandiset(request, dataset):
     """Redirect to gui with retrieved folder ID
     """
@@ -100,11 +115,14 @@ async def goto_dandiset(request, dataset):
         json_info = req.json()
         if json_info is not None:
             id = json_info['_id']
-            return response.redirect(f"https://gui.dandiarchive.org/#/dandiset/{id}")
+            url = f"https://gui.dandiarchive.org/#/dandiset/{id}"
+            if request.method == "HEAD":
+                return response.html(None, status=302, headers=make_header(url))
+            return response.redirect(url)
     return response.text(f"dandi:{dataset:06d} not found.", status=404)
 
 
-@app.route("/dandiset/<dataset:int>/<version>")
+@app.route("/dandiset/<dataset:int>/<version>", methods=['GET', 'HEAD'])
 async def goto_dandiset_version(request, dataset, version):
     req = requests.get(
         f"https://girder.dandiarchive.org/api/v1/dandi/{dataset:06d}")
@@ -112,7 +130,10 @@ async def goto_dandiset_version(request, dataset, version):
         json_info = req.json()
         if json_info is not None:
             id = json_info['_id']
-            return response.redirect(f"https://gui.dandiarchive.org/#/dandiset/{id}")
+            url = f"https://gui.dandiarchive.org/#/dandiset/{id}"
+            if request.method == "HEAD":
+                return response.html(None, status=302, headers=make_header(url))
+            return response.redirect(url)
     return response.text(f"dandi:{dataset:06d}/{version} not found.", status=404)
 
 if __name__ == "__main__":
