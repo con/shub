@@ -86,15 +86,11 @@ async def init(app, loop):
 
 @app.route("/", methods=['GET'])
 async def main(request):
-    if request.method == "HEAD":
-        pass
     return response.redirect("https://gui.dandiarchive.org/")
 
 
 @app.route("/about", methods=['GET'])
 async def about(request):
-    if request.method == "HEAD":
-        pass
     return response.redirect("https://www.dandiarchive.org")
 
 
