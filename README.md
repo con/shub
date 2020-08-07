@@ -44,7 +44,7 @@ certbot --nginx
 #### make a local pip upgrade
 ```
 python3.7 -m pip install --upgrade pip
-pip3.7 install sanic sanic-cors
+pip3.7 install requests sanic sanic-cors
 ```
 
 #### clone repo and run
