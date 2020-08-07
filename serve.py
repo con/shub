@@ -8,7 +8,7 @@ import requests
 
 GIRDER_URL = os.environ.get("GIRDER_URL", "https://girder.dandiarchive.org").rstrip('/')
 GUI_URL = os.environ.get("GUI_URL", "https://gui.dandiarchive.org").rstrip('/')
-ABOUT_URL = os.environ.get("ABOUT_URL", "https://dandiarchive.org").rstrip('/')
+ABOUT_URL = os.environ.get("ABOUT_URL", "https://www.dandiarchive.org").rstrip('/')
 
 production = 'DEV628cc89a6444' not in os.environ
 sem = None
