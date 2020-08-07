@@ -44,12 +44,12 @@ certbot --nginx
 #### make a local pip upgrade
 ```
 python3.7 -m pip install --upgrade pip
-pip3.7 install requests sanic sanic-cors
 ```
 
 #### clone repo and run
 ```
 git clone https://github.com/dandi/redirector.git
 cd redirector
+pip3.7 install -r requirements.txt
 nohup python3.7 serve.py &
 ```
