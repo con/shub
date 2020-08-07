@@ -6,6 +6,10 @@ from sanic import response
 from sanic_cors import CORS
 import requests
 
+GIRDER_URL = os.environ.get("GIRDER_URL", "https://girder.dandiarchive.org").rstrip('/')
+GUI_URL = os.environ.get("GUI_URL", "https://gui.dandiarchive.org").rstrip('/')
+ABOUT_URL = os.environ.get("ABOUT_URL", "https://www.dandiarchive.org").rstrip('/')
+
 production = 'DEV628cc89a6444' not in os.environ
 sem = None
 basedir = os.environ["HOME"] if production else os.getcwd()
@@ -86,19 +90,19 @@ async def init(app, loop):
 
 @app.route("/", methods=['GET'])
 async def main(request):
-    return response.redirect("https://gui.dandiarchive.org/")
+    return response.redirect(GUI_URL + '/')
 
 
 @app.route("/about", methods=['GET'])
 async def about(request):
-    return response.redirect("https://www.dandiarchive.org")
+    return response.redirect(ABOUT_URL)
 
 
 @app.route("/dandiset", methods=['GET'])
 async def goto_public_dashboard(request):
     """Redirect to gui draft collection
     """
-    return response.redirect("https://gui.dandiarchive.org/#/dandiset")
+    return response.redirect(f"{GUI_URL}/#/dandiset")
 
 
 @app.route("/dandiset/<dataset:int>", methods=['GET', 'HEAD'])
@@ -106,12 +110,12 @@ async def goto_dandiset(request, dataset):
     """Redirect to gui with retrieved folder ID
     """
     req = requests.get(
-        f"https://girder.dandiarchive.org/api/v1/dandi/{dataset:06d}")
+        f"{GIRDER_URL}/api/v1/dandi/{dataset:06d}")
     if req.reason == 'OK':
         json_info = req.json()
         if json_info is not None:
             id = json_info['_id']
-            url = f"https://gui.dandiarchive.org/#/dandiset/{id}"
+            url = f"{GUI_URL}/#/dandiset/{id}"
             if request.method == "HEAD":
                 return response.html(None, status=302, headers=make_header(url))
             return response.redirect(url)
@@ -121,12 +125,12 @@ async def goto_dandiset(request, dataset):
 @app.route("/dandiset/<dataset:int>/<version>", methods=['GET', 'HEAD'])
 async def goto_dandiset_version(request, dataset, version):
     req = requests.get(
-        f"https://girder.dandiarchive.org/api/v1/dandi/{dataset:06d}")
+        f"{GIRDER_URL}/api/v1/dandi/{dataset:06d}")
     if req.reason == 'OK':
         json_info = req.json()
         if json_info is not None:
             id = json_info['_id']
-            url = f"https://gui.dandiarchive.org/#/dandiset/{id}"
+            url = f"{GUI_URL}/#/dandiset/{id}"
             if request.method == "HEAD":
                 return response.html(None, status=302, headers=make_header(url))
             return response.redirect(url)
