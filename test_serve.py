@@ -11,10 +11,10 @@ NEXIST_DANDI_ID = "999999"
         "/dandiset/000003",
         "https://gui.dandiarchive.org/#/dandiset/5e6eb2b776569eb93f451f8d",
     ),
-    #(
-    #    "/dandiset/000003/???",
-    #    "https://gui.dandiarchive.org/#/dandiset/???",
-    #),
+    (
+    "/dandiset/000003/0.20200703.1040",
+    "https://gui.dandiarchive.org/#/dandiset/5e6eb2b776569eb93f451f8d",
+    ),
 ])
 def test_redirect(req_url, resp_url):
     _, r = app.test_client.get(req_url)
@@ -26,10 +26,10 @@ def test_redirect(req_url, resp_url):
         "/dandiset/000003",
         "https://gui.dandiarchive.org/#/dandiset/5e6eb2b776569eb93f451f8d",
     ),
-    #(
-    #    "/dandiset/000003/???",
-    #    "https://gui.dandiarchive.org/#/dandiset/???",
-    #),
+    (
+    "/dandiset/000003/0.20200703.1040",
+    "https://gui.dandiarchive.org/#/dandiset/5e6eb2b776569eb93f451f8d",
+    ),
 ])
 def test_redirect_head(req_url, resp_url):
     _, r = app.test_client.head(req_url)
