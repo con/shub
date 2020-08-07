@@ -8,7 +8,7 @@ import requests
 
 GIRDER_URL = os.environ.get("GIRDER_URL", "https://girder.dandiarchive.org").rstrip('/')
 GUI_URL = os.environ.get("GUI_URL", "https://gui.dandiarchive.org").rstrip('/')
-REDIRECTOR_URL = os.environ.get("REDIRECTOR_URL", "https://dandiarchive.org").rstrip('/')
+ABOUT_URL = os.environ.get("ABOUT_URL", "https://dandiarchive.org").rstrip('/')
 
 production = 'DEV628cc89a6444' not in os.environ
 sem = None
@@ -95,7 +95,7 @@ async def main(request):
 
 @app.route("/about", methods=['GET'])
 async def about(request):
-    return response.redirect(REDIRECTOR_URL)
+    return response.redirect(ABOUT_URL)
 
 
 @app.route("/dandiset", methods=['GET'])
