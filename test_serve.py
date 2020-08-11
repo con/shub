@@ -47,3 +47,26 @@ def test_redirect_nonexistent_dandiset_version():
     _, r = app.test_client.get(f"/dandiset/{NEXIST_DANDI_ID}/0.20200703.1040")
     assert r.status_code == 404
     assert r.text == f"dandi:{NEXIST_DANDI_ID}/0.20200703.1040 not found."
+
+def test_server_info():
+    _, r = app.test_client.get("/server-info")
+    r.raise_for_status()
+    assert r.json == {
+        "version": "1.0.0",
+        "cli-minimal-version": "0.5.0",
+        "cli-bad-versions": [],
+        "services": {
+            "girder": {
+                "url": "https://girder.dandiarchive.org",
+            },
+            "webui": {
+                "url": "https://gui.dandiarchive.org",
+            },
+            "api": {
+                "url": "https://publish.dandiarchive.org/api",
+            },
+            "jupyterhub": {
+                "url": "https://hub.dandiarchive.org",
+            }
+        }
+    }

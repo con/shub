@@ -7,8 +7,14 @@ from sanic_cors import CORS
 import requests
 
 GIRDER_URL = os.environ.get("GIRDER_URL", "https://girder.dandiarchive.org").rstrip('/')
+
 GUI_URL = os.environ.get("GUI_URL", "https://gui.dandiarchive.org").rstrip('/')
+
 ABOUT_URL = os.environ.get("ABOUT_URL", "https://www.dandiarchive.org").rstrip('/')
+
+PUBLISH_API_URL = os.environ.get("PUBLISH_API_URL", "https://publish.dandiarchive.org/api").rstrip()
+
+JUPYTERHUB_URL = os.environ.get("JUPYTERHUB_URL", "https://hub.dandiarchive.org").rstrip()
 
 production = 'DEV628cc89a6444' not in os.environ
 sem = None
@@ -135,6 +141,29 @@ async def goto_dandiset_version(request, dataset, version):
                 return response.html(None, status=302, headers=make_header(url))
             return response.redirect(url)
     return response.text(f"dandi:{dataset:06d}/{version} not found.", status=404)
+
+
+@app.route("/server-info", methods=["GET"])
+async def server_info(request):
+    return response.json({
+        "version": "1.0.0",
+        "cli-minimal-version": "0.5.0",
+        "cli-bad-versions": [],
+        "services": {
+            "girder": {
+                "url": GIRDER_URL,
+            },
+            "webui": {
+                "url": GUI_URL,
+            },
+            "api": {
+                "url": PUBLISH_API_URL,
+            },
+            "jupyterhub": {
+                "url": JUPYTERHUB_URL,
+            }
+        }
+    })
 
 if __name__ == "__main__":
     logger.info("Starting backend")
