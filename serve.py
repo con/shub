@@ -6,29 +6,34 @@ from sanic import response
 from sanic_cors import CORS
 import requests
 
-GIRDER_URL = os.environ.get("GIRDER_URL", "https://girder.dandiarchive.org").rstrip('/')
+GIRDER_URL = os.environ.get("GIRDER_URL", "https://girder.dandiarchive.org").rstrip("/")
 
-GUI_URL = os.environ.get("GUI_URL", "https://gui.dandiarchive.org").rstrip('/')
+GUI_URL = os.environ.get("GUI_URL", "https://gui.dandiarchive.org").rstrip("/")
 
-ABOUT_URL = os.environ.get("ABOUT_URL", "https://www.dandiarchive.org").rstrip('/')
+ABOUT_URL = os.environ.get("ABOUT_URL", "https://www.dandiarchive.org").rstrip("/")
 
-PUBLISH_API_URL = os.environ.get("PUBLISH_API_URL", "https://publish.dandiarchive.org/api").rstrip()
+PUBLISH_API_URL = os.environ.get(
+    "PUBLISH_API_URL", "https://publish.dandiarchive.org/api"
+).rstrip()
 
-JUPYTERHUB_URL = os.environ.get("JUPYTERHUB_URL", "https://hub.dandiarchive.org").rstrip()
+JUPYTERHUB_URL = os.environ.get(
+    "JUPYTERHUB_URL", "https://hub.dandiarchive.org"
+).rstrip()
 
-production = 'DEV628cc89a6444' not in os.environ
+production = "DEV628cc89a6444" not in os.environ
 sem = None
 basedir = os.environ["HOME"] if production else os.getcwd()
 logdir = os.path.join(basedir, "redirector")
 if not os.path.exists(logdir):
     os.makedirs(logdir, exist_ok=True)
 
-handler_dict = {"class": "logging.handlers.TimedRotatingFileHandler",
-                "when": 'D',
-                "interval": 7,
-                "backupCount": 10,
-                "formatter": "generic",
-                }
+handler_dict = {
+    "class": "logging.handlers.TimedRotatingFileHandler",
+    "when": "D",
+    "interval": 7,
+    "backupCount": 10,
+    "formatter": "generic",
+}
 LOG_SETTINGS = dict(
     version=1,
     disable_existing_loggers=False,
@@ -48,12 +53,18 @@ LOG_SETTINGS = dict(
         },
     },
     handlers={
-        "consolefile": {**handler_dict,
-                        **{'filename': os.path.join(logdir, "console.log")}},
-        "error_consolefile": {**handler_dict,
-                              **{'filename': os.path.join(logdir, "error.log")}},
-        "access_consolefile": {**handler_dict,
-                               **{'filename': os.path.join(logdir, "access.log")}},
+        "consolefile": {
+            **handler_dict,
+            **{"filename": os.path.join(logdir, "console.log")},
+        },
+        "error_consolefile": {
+            **handler_dict,
+            **{"filename": os.path.join(logdir, "error.log")},
+        },
+        "access_consolefile": {
+            **handler_dict,
+            **{"filename": os.path.join(logdir, "access.log")},
+        },
     },
     formatters={
         "generic": {
@@ -63,7 +74,7 @@ LOG_SETTINGS = dict(
         },
         "access": {
             "format": "%(asctime)s - (%(name)s)[%(levelname)s][%(host)s]: "
-                      + "%(request)s %(message)s %(status)d %(byte)d",
+            + "%(request)s %(message)s %(status)d %(byte)d",
             "datefmt": "[%Y-%m-%d %H:%M:%S %z]",
             "class": "logging.Formatter",
         },
@@ -79,12 +90,15 @@ CORS(app)
 
 def make_header(url):
     import time
+
     gmtnow = time.strftime("%a, %d %b %Y %I:%M:%S %p %Z", time.gmtime())
-    header = {"location": url,
-              "content-type": "text/plain;charset=UTF-8",
-              "content-length": 0,
-              "date": gmtnow,
-              "alt-svc": "clear"}
+    header = {
+        "location": url,
+        "content-type": "text/plain;charset=UTF-8",
+        "content-length": 0,
+        "date": gmtnow,
+        "alt-svc": "clear",
+    }
     return header
 
 
@@ -94,33 +108,32 @@ async def init(app, loop):
     sem = asyncio.Semaphore(100)
 
 
-@app.route("/", methods=['GET'])
+@app.route("/", methods=["GET"])
 async def main(request):
-    return response.redirect(GUI_URL + '/')
+    return response.redirect(GUI_URL + "/")
 
 
-@app.route("/about", methods=['GET'])
+@app.route("/about", methods=["GET"])
 async def about(request):
     return response.redirect(ABOUT_URL)
 
 
-@app.route("/dandiset", methods=['GET'])
+@app.route("/dandiset", methods=["GET"])
 async def goto_public_dashboard(request):
     """Redirect to gui draft collection
     """
     return response.redirect(f"{GUI_URL}/#/dandiset")
 
 
-@app.route("/dandiset/<dataset:int>", methods=['GET', 'HEAD'])
+@app.route("/dandiset/<dataset:int>", methods=["GET", "HEAD"])
 async def goto_dandiset(request, dataset):
     """Redirect to gui with retrieved folder ID
     """
-    req = requests.get(
-        f"{GIRDER_URL}/api/v1/dandi/{dataset:06d}")
-    if req.reason == 'OK':
+    req = requests.get(f"{GIRDER_URL}/api/v1/dandi/{dataset:06d}")
+    if req.reason == "OK":
         json_info = req.json()
         if json_info is not None:
-            id = json_info['_id']
+            id = json_info["_id"]
             url = f"{GUI_URL}/#/dandiset/{id}"
             if request.method == "HEAD":
                 return response.html(None, status=302, headers=make_header(url))
@@ -128,14 +141,13 @@ async def goto_dandiset(request, dataset):
     return response.text(f"dandi:{dataset:06d} not found.", status=404)
 
 
-@app.route("/dandiset/<dataset:int>/<version>", methods=['GET', 'HEAD'])
+@app.route("/dandiset/<dataset:int>/<version>", methods=["GET", "HEAD"])
 async def goto_dandiset_version(request, dataset, version):
-    req = requests.get(
-        f"{GIRDER_URL}/api/v1/dandi/{dataset:06d}")
-    if req.reason == 'OK':
+    req = requests.get(f"{GIRDER_URL}/api/v1/dandi/{dataset:06d}")
+    if req.reason == "OK":
         json_info = req.json()
         if json_info is not None:
-            id = json_info['_id']
+            id = json_info["_id"]
             url = f"{GUI_URL}/#/dandiset/{id}"
             if request.method == "HEAD":
                 return response.html(None, status=302, headers=make_header(url))
@@ -145,25 +157,20 @@ async def goto_dandiset_version(request, dataset, version):
 
 @app.route("/server-info", methods=["GET"])
 async def server_info(request):
-    return response.json({
-        "version": "1.0.0",
-        "cli-minimal-version": "0.5.0",
-        "cli-bad-versions": [],
-        "services": {
-            "girder": {
-                "url": GIRDER_URL,
+    return response.json(
+        {
+            "version": "1.0.0",
+            "cli-minimal-version": "0.5.0",
+            "cli-bad-versions": [],
+            "services": {
+                "girder": {"url": GIRDER_URL},
+                "webui": {"url": GUI_URL},
+                "api": {"url": PUBLISH_API_URL},
+                "jupyterhub": {"url": JUPYTERHUB_URL},
             },
-            "webui": {
-                "url": GUI_URL,
-            },
-            "api": {
-                "url": PUBLISH_API_URL,
-            },
-            "jupyterhub": {
-                "url": JUPYTERHUB_URL,
-            }
         }
-    })
+    )
+
 
 if __name__ == "__main__":
     logger.info("Starting backend")
