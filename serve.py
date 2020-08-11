@@ -8,6 +8,8 @@ import requests
 
 GIRDER_URL = os.environ.get("GIRDER_URL", "https://girder.dandiarchive.org").rstrip("/")
 
+GIRDER_LOCAL_URL = os.environ.get("GIRDER_LOCAL_URL", GIRDER_URL).rstrip("/")
+
 GUI_URL = os.environ.get("GUI_URL", "https://gui.dandiarchive.org").rstrip("/")
 
 ABOUT_URL = os.environ.get("ABOUT_URL", "https://www.dandiarchive.org").rstrip("/")
@@ -129,7 +131,7 @@ async def goto_public_dashboard(request):
 async def goto_dandiset(request, dataset):
     """Redirect to GUI with dandiset identifier
     """
-    req = requests.get(f"{GIRDER_URL}/api/v1/dandi/{dataset:06d}")
+    req = requests.get(f"{GIRDER_LOCAL_URL}/api/v1/dandi/{dataset:06d}")
     if req.reason == "OK":
         url = f"{GUI_URL}/#/dandiset/{dataset:06d}/draft"
         if request.method == "HEAD":
@@ -142,7 +144,7 @@ async def goto_dandiset(request, dataset):
 async def goto_dandiset_version(request, dataset, version):
     """Redirect to GUI with dandiset identifier and version
     """
-    req = requests.get(f"{GIRDER_URL}/api/v1/dandi/{dataset:06d}")
+    req = requests.get(f"{GIRDER_LOCAL_URL}/api/v1/dandi/{dataset:06d}")
     if req.reason == "OK":
         url = f"{GUI_URL}/#/dandiset/{dataset:06d}/{version}"
         if request.method == "HEAD":
