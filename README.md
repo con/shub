@@ -53,3 +53,16 @@ cd redirector
 pip3.7 install -r requirements.txt
 nohup python3.7 serve.py &
 ```
+
+## Development
+
+This repo uses pre-commit for styling and syntax checks. To use in your Python
++ git environment, do:
+
+```
+pip install pre-commit
+pre-commit install
+```
+
+After this, it will run the pre-commit checks on every git commit, make any
+adjustments as necessary, and request that you git commit again.
