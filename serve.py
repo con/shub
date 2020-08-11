@@ -168,7 +168,8 @@ async def server_info(request):
                 "api": {"url": PUBLISH_API_URL},
                 "jupyterhub": {"url": JUPYTERHUB_URL},
             },
-        }
+        },
+        indent=4
     )
 
 
