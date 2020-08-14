@@ -131,7 +131,7 @@ async def goto_dandiset(request, dataset):
     """
     req = requests.get(f"{GIRDER_URL}/api/v1/dandi/{dataset:06d}")
     if req.reason == "OK":
-        url = f"{GUI_URL}/#/dandiset/{dataset:06d}"
+        url = f"{GUI_URL}/#/dandiset/{dataset:06d}/draft"
         if request.method == "HEAD":
             return response.html(None, status=302, headers=make_header(url))
         return response.redirect(url)
