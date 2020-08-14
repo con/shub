@@ -120,39 +120,35 @@ async def about(request):
 
 @app.route("/dandiset", methods=["GET"])
 async def goto_public_dashboard(request):
-    """Redirect to gui draft collection
+    """Redirect to GUI public dandisets
     """
     return response.redirect(f"{GUI_URL}/#/dandiset")
 
 
 @app.route("/dandiset/<dataset:int>", methods=["GET", "HEAD"])
 async def goto_dandiset(request, dataset):
-    """Redirect to gui with retrieved folder ID
+    """Redirect to GUI with dandiset identifier
     """
     req = requests.get(f"{GIRDER_URL}/api/v1/dandi/{dataset:06d}")
     if req.reason == "OK":
-        json_info = req.json()
-        if json_info is not None:
-            id = json_info["_id"]
-            url = f"{GUI_URL}/#/dandiset/{id}"
-            if request.method == "HEAD":
-                return response.html(None, status=302, headers=make_header(url))
-            return response.redirect(url)
+        url = f"{GUI_URL}/#/dandiset/{dataset:06d}"
+        if request.method == "HEAD":
+            return response.html(None, status=302, headers=make_header(url))
+        return response.redirect(url)
     return response.text(f"dandi:{dataset:06d} not found.", status=404)
 
 
 @app.route("/dandiset/<dataset:int>/<version>", methods=["GET", "HEAD"])
 async def goto_dandiset_version(request, dataset, version):
+    """Redirect to GUI with dandiset identifier and version
+    """
     req = requests.get(f"{GIRDER_URL}/api/v1/dandi/{dataset:06d}")
     if req.reason == "OK":
-        json_info = req.json()
-        if json_info is not None:
-            id = json_info["_id"]
-            url = f"{GUI_URL}/#/dandiset/{id}"
-            if request.method == "HEAD":
-                return response.html(None, status=302, headers=make_header(url))
-            return response.redirect(url)
-    return response.text(f"dandi:{dataset:06d}/{version} not found.", status=404)
+        url = f"{GUI_URL}/#/dandiset/{dataset:06d}/{version}"
+        if request.method == "HEAD":
+            return response.html(None, status=302, headers=make_header(url))
+        return response.redirect(url)
+    return response.text(f"dandi:{dataset:06d} not found.", status=404)
 
 
 @app.route("/server-info", methods=["GET"])
