@@ -156,7 +156,7 @@ async def server_info(request):
     return response.json(
         {
             "version": "1.0.0",
-            "cli-minimal-version": "0.5.0",
+            "cli-minimal-version": "0.6.0",
             "cli-bad-versions": [],
             "services": {
                 "girder": {"url": GIRDER_URL},
