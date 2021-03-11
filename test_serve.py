@@ -40,7 +40,7 @@ def test_redirect(req_url, resp_url):
     ],
 )
 def test_redirect_head(req_url, resp_url):
-    _, r = app.test_client.head(req_url)
+    _, r = app.test_client.head(req_url, allow_redirects=False)
     r.raise_for_status()
     assert r.headers["Location"] == resp_url
     assert r.status_code == 302
