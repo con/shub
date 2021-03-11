@@ -131,7 +131,7 @@ async def goto_public_dashboard(request):
 async def goto_dandiset(request, dataset):
     """Redirect to GUI with dandiset identifier
     """
-    req = requests.get(f"{GIRDER_LOCAL_URL}/api/v1/dandi/{dataset:06d}")
+    req = requests.get(f"{GIRDER_LOCAL_URL}/api/v1/dandi/{dataset}")
     if req.reason == "OK":
         url = f"{GUI_URL}/#/dandiset/{dataset}/draft"
         if request.method == "HEAD":
