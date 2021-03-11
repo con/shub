@@ -1,4 +1,5 @@
 import asyncio
+import re
 import os
 from sanic import Sanic
 from sanic.log import logger
@@ -21,6 +22,8 @@ PUBLISH_API_URL = os.environ.get(
 JUPYTERHUB_URL = os.environ.get(
     "JUPYTERHUB_URL", "https://hub.dandiarchive.org"
 ).rstrip()
+
+dandiset_identifier_regex = "^[0-9]{6}$"
 
 production = "DEV628cc89a6444" not in os.environ
 sem = None
@@ -131,6 +134,8 @@ async def goto_public_dashboard(request):
 async def goto_dandiset(request, dataset):
     """Redirect to GUI with dandiset identifier
     """
+    if not re.fullmatch(dandiset_identifier_regex, dataset):
+        return response.text(f"{dataset}: invalid Dandiset ID", status=400)
     req = requests.get(f"{GIRDER_LOCAL_URL}/api/v1/dandi/{dataset}")
     if req.reason == "OK":
         url = f"{GUI_URL}/#/dandiset/{dataset}/draft"
@@ -144,6 +149,8 @@ async def goto_dandiset(request, dataset):
 async def goto_dandiset_version(request, dataset, version):
     """Redirect to GUI with dandiset identifier and version
     """
+    if not re.fullmatch(dandiset_identifier_regex, dataset):
+        return response.text(f"{dataset}: invalid Dandiset ID", status=400)
     req = requests.get(f"{GIRDER_LOCAL_URL}/api/v1/dandi/{dataset}")
     if req.reason == "OK":
         url = f"{GUI_URL}/#/dandiset/{dataset}/{version}"
@@ -167,7 +174,7 @@ async def server_info(request):
                 "jupyterhub": {"url": JUPYTERHUB_URL},
             },
         },
-        indent=4
+        indent=4,
     )
 
 
