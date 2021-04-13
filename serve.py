@@ -164,13 +164,13 @@ async def goto_dandiset_version(request, dataset, version):
 async def server_info(request):
     return response.json(
         {
-            "version": "1.0.0",
+            "version": "1.2.0",
             "cli-minimal-version": "0.6.0",
             "cli-bad-versions": [],
             "services": {
                 "girder": {"url": GIRDER_URL},
                 "webui": {"url": GUI_URL},
-                "api": {"url": PUBLISH_API_URL},
+                "api": {"url": None},  # Currently we use girder, not dandi-api
                 "jupyterhub": {"url": JUPYTERHUB_URL},
             },
         },
