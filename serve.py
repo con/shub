@@ -1,4 +1,5 @@
 import asyncio
+import re
 import os
 from sanic import Sanic
 from sanic.log import logger
@@ -21,6 +22,8 @@ PUBLISH_API_URL = os.environ.get(
 JUPYTERHUB_URL = os.environ.get(
     "JUPYTERHUB_URL", "https://hub.dandiarchive.org"
 ).rstrip()
+
+dandiset_identifier_regex = "^[0-9]{6}$"
 
 production = "DEV628cc89a6444" not in os.environ
 sem = None
@@ -127,30 +130,34 @@ async def goto_public_dashboard(request):
     return response.redirect(f"{GUI_URL}/#/dandiset")
 
 
-@app.route("/dandiset/<dataset:int>", methods=["GET", "HEAD"])
+@app.route("/dandiset/<dataset>", methods=["GET", "HEAD"])
 async def goto_dandiset(request, dataset):
     """Redirect to GUI with dandiset identifier
     """
-    req = requests.get(f"{GIRDER_LOCAL_URL}/api/v1/dandi/{dataset:06d}")
+    if not re.fullmatch(dandiset_identifier_regex, dataset):
+        return response.text(f"{dataset}: invalid Dandiset ID", status=400)
+    req = requests.get(f"{GIRDER_LOCAL_URL}/api/v1/dandi/{dataset}")
     if req.reason == "OK":
-        url = f"{GUI_URL}/#/dandiset/{dataset:06d}/draft"
+        url = f"{GUI_URL}/#/dandiset/{dataset}/draft"
         if request.method == "HEAD":
             return response.html(None, status=302, headers=make_header(url))
         return response.redirect(url)
-    return response.text(f"dandi:{dataset:06d} not found.", status=404)
+    return response.text(f"dandi:{dataset} not found.", status=404)
 
 
-@app.route("/dandiset/<dataset:int>/<version>", methods=["GET", "HEAD"])
+@app.route("/dandiset/<dataset>/<version>", methods=["GET", "HEAD"])
 async def goto_dandiset_version(request, dataset, version):
     """Redirect to GUI with dandiset identifier and version
     """
-    req = requests.get(f"{GIRDER_LOCAL_URL}/api/v1/dandi/{dataset:06d}")
+    if not re.fullmatch(dandiset_identifier_regex, dataset):
+        return response.text(f"{dataset}: invalid Dandiset ID", status=400)
+    req = requests.get(f"{GIRDER_LOCAL_URL}/api/v1/dandi/{dataset}")
     if req.reason == "OK":
-        url = f"{GUI_URL}/#/dandiset/{dataset:06d}/{version}"
+        url = f"{GUI_URL}/#/dandiset/{dataset}/{version}"
         if request.method == "HEAD":
             return response.html(None, status=302, headers=make_header(url))
         return response.redirect(url)
-    return response.text(f"dandi:{dataset:06d} not found.", status=404)
+    return response.text(f"dandi:{dataset} not found.", status=404)
 
 
 @app.route("/server-info", methods=["GET"])
@@ -167,7 +174,7 @@ async def server_info(request):
                 "jupyterhub": {"url": JUPYTERHUB_URL},
             },
         },
-        indent=4
+        indent=4,
     )
 
 
