@@ -15,10 +15,6 @@ GUI_URL = os.environ.get("GUI_URL", "https://gui.dandiarchive.org").rstrip("/")
 
 ABOUT_URL = os.environ.get("ABOUT_URL", "https://www.dandiarchive.org").rstrip("/")
 
-PUBLISH_API_URL = os.environ.get(
-    "PUBLISH_API_URL", "https://publish.dandiarchive.org/api"
-).rstrip()
-
 JUPYTERHUB_URL = os.environ.get(
     "JUPYTERHUB_URL", "https://hub.dandiarchive.org"
 ).rstrip()
@@ -164,13 +160,12 @@ async def goto_dandiset_version(request, dataset, version):
 async def server_info(request):
     return response.json(
         {
-            "version": "1.0.0",
+            "version": "1.1.0",
             "cli-minimal-version": "0.6.0",
             "cli-bad-versions": [],
             "services": {
                 "girder": {"url": GIRDER_URL},
                 "webui": {"url": GUI_URL},
-                "api": {"url": PUBLISH_API_URL},
                 "jupyterhub": {"url": JUPYTERHUB_URL},
             },
         },
