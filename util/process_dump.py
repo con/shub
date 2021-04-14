@@ -29,6 +29,8 @@
 __author__ = 'yoh'
 __license__ = 'MIT'
 
+import base64
+from collections import defaultdict
 import click
 import tqdm
 import json
@@ -49,7 +51,7 @@ def get_sif_files(fields):
 @click.argument("output_json", type=click.Path(exists=False, file_okay=True))
 # TODO: option to point to filestore so we could check
 def main(dump_path, output_json):
-    recs = []
+    recs = defaultdict(list)
     with (Path(dump_path) / "main.container.json").open() as f:
         orig_recs = json.load(f)
         for dbrec in tqdm.tqdm(orig_recs):
@@ -63,7 +65,6 @@ def main(dump_path, output_json):
                 continue
             rec = {
                 "id": dbrec["pk"],
-                "name": fields["name"],
                 "branch": fields["branch"],
                 "tag": fields["tag"],
                 "commit": fields["commit"],
@@ -71,7 +72,7 @@ def main(dump_path, output_json):
                 # this is apparently not a size of the image!
                 # API does report it as well. correct 'size': '62652447',
                 # is in 'files' record
-                "size_mb": fields['metrics'].get('size_mb'), # some other size ;)
+                "size_mb": fields['metrics'].get('size_mb'),
             }
             # it seems we can match based on image and mediaLink
             target_file = None
@@ -100,18 +101,11 @@ def main(dump_path, output_json):
                       f"Image url was {fields['image']} but found no matching file record")
                 continue
             # TODO: just store relevant   image?
-            rec['file'] = target_file
-            recs.append(rec)
-    """Need following for the results to return
-  "id": 11888,                                                                                                                                                                                                       
-  "name": "ReproNim/reproin",                                                                                                                                                                                        
-  "branch": "master",                                                                                                                                                                                                
-  "commit": "7def9299ea40bd191efb5b3ab5f3bdc3c2c4b62d",                                                                                                                                                              
-  "tag": "latest",                                                                                                                                                                                                   
-  "version": "361dd7824960bb8eb43b699f90b977cf",                                                                                                                                                                     
-  "size_mb": 1332,                                                                                                                                                                                                   
-  "image":  
-  """
+            rec['file'] = target_file['name']
+            rec['size'] = int(target_file['size'])
+            rec['md5'] = base64.b16encode(
+                 base64.b64decode(target_file['md5Hash'])).lower().decode()
+            recs[fields['name']].append(rec)
     with open(output_json, 'w') as f:
         json.dump(recs, f, indent=2)  # TODO: remove indent for production
 
@@ -122,6 +116,17 @@ if __name__ == '__main__':
 
 
 """
+Need following for the results to return
+  "id": 11888,                                                                                                                                                                                                       
+  "name": "ReproNim/reproin",                                                                                                                                                                                        
+  "branch": "master",                                                                                                                                                                                                
+  "commit": "7def9299ea40bd191efb5b3ab5f3bdc3c2c4b62d",                                                                                                                                                              
+  "tag": "latest",                                                                                                                                                                                                   
+  "version": "361dd7824960bb8eb43b699f90b977cf",                                                                                                                                                                     
+  "size_mb": 1332,                                                                                                                                                                                                   
+  "image":  
+
+sample rec
     'collection': 17,
     'branch': 'master',
     'tag': 'latest',
