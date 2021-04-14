@@ -1,4 +1,11 @@
-# redirector
+# Singularity-Hub.org (shub) read-only implementation
+
+This repository is based on https://github.com/dandi/redirector
+which is taken as the basis to establish desired functionality.
+
+Notes below are just for references and some code around which points
+to DANDI infrstructure components is not relevant, and will be cleaned up
+later.
 
 ## Current install process on instance
 

@@ -1,3 +1,11 @@
+"""
+Implements minimal API necessary for singularity client to be
+able to fetch singularity images.
+
+It will be reverse proxied for https://singularity-hub.org/api/
+(so any other component will be handled at web server level)
+"""
+
 import asyncio
 import re
 import os
@@ -7,28 +15,15 @@ from sanic import response
 from sanic_cors import CORS
 import requests
 
-GIRDER_URL = os.environ.get("GIRDER_URL", "https://girder.dandiarchive.org").rstrip("/")
+# TODO: move from repronim to hub
+GOTO_URL = "https://datasets.datalad.org/?dir=/repronim"
 
-GIRDER_LOCAL_URL = os.environ.get("GIRDER_LOCAL_URL", GIRDER_URL).rstrip("/")
+# TODO: do establish logging for deployed instance
 
-GUI_URL = os.environ.get("GUI_URL", "https://gui.dandiarchive.org").rstrip("/")
-
-ABOUT_URL = os.environ.get("ABOUT_URL", "https://www.dandiarchive.org").rstrip("/")
-
-PUBLISH_API_URL = os.environ.get(
-    "PUBLISH_API_URL", "https://publish.dandiarchive.org/api"
-).rstrip()
-
-JUPYTERHUB_URL = os.environ.get(
-    "JUPYTERHUB_URL", "https://hub.dandiarchive.org"
-).rstrip()
-
-dandiset_identifier_regex = "^[0-9]{6}$"
-
-production = "DEV628cc89a6444" not in os.environ
+production = True # "DEV628cc89a6444" not in os.environ
 sem = None
-basedir = os.environ["HOME"] if production else os.getcwd()
-logdir = os.path.join(basedir, "redirector")
+basedir = os.getcwd() # environ["HOME"] if production else os.getcwd()
+logdir = os.path.join(basedir, "logs")
 if not os.path.exists(logdir):
     os.makedirs(logdir, exist_ok=True)
 
@@ -115,25 +110,18 @@ async def init(app, loop):
 
 @app.route("/", methods=["GET"])
 async def main(request):
-    return response.redirect(GUI_URL + "/")
+    return response.redirect(GOTO_URL)
 
 
-@app.route("/about", methods=["GET"])
-async def about(request):
-    return response.redirect(ABOUT_URL)
-
-
-@app.route("/dandiset", methods=["GET"])
-async def goto_public_dashboard(request):
-    """Redirect to GUI public dandisets
+@app.route("container/<collection>/<container>", methods=["GET", "HEAD"])
+async def goto_dandiset(request, collection, container):
+    """Parse/handle the query
     """
-    return response.redirect(f"{GUI_URL}/#/dandiset")
+    return response.json({
+            "collection": collection
+        })
 
-
-@app.route("/dandiset/<dataset>", methods=["GET", "HEAD"])
-async def goto_dandiset(request, dataset):
-    """Redirect to GUI with dandiset identifier
-    """
+"""
     if not re.fullmatch(dandiset_identifier_regex, dataset):
         return response.text(f"{dataset}: invalid Dandiset ID", status=400)
     req = requests.get(f"{GIRDER_LOCAL_URL}/api/v1/dandi/{dataset}")
@@ -143,40 +131,7 @@ async def goto_dandiset(request, dataset):
             return response.html(None, status=302, headers=make_header(url))
         return response.redirect(url)
     return response.text(f"dandi:{dataset} not found.", status=404)
-
-
-@app.route("/dandiset/<dataset>/<version>", methods=["GET", "HEAD"])
-async def goto_dandiset_version(request, dataset, version):
-    """Redirect to GUI with dandiset identifier and version
-    """
-    if not re.fullmatch(dandiset_identifier_regex, dataset):
-        return response.text(f"{dataset}: invalid Dandiset ID", status=400)
-    req = requests.get(f"{GIRDER_LOCAL_URL}/api/v1/dandi/{dataset}")
-    if req.reason == "OK":
-        url = f"{GUI_URL}/#/dandiset/{dataset}/{version}"
-        if request.method == "HEAD":
-            return response.html(None, status=302, headers=make_header(url))
-        return response.redirect(url)
-    return response.text(f"dandi:{dataset} not found.", status=404)
-
-
-@app.route("/server-info", methods=["GET"])
-async def server_info(request):
-    return response.json(
-        {
-            "version": "1.2.0",
-            "cli-minimal-version": "0.6.0",
-            "cli-bad-versions": [],
-            "services": {
-                "girder": {"url": GIRDER_URL},
-                "webui": {"url": GUI_URL},
-                "api": {"url": None},  # Currently we use girder, not dandi-api
-                "jupyterhub": {"url": JUPYTERHUB_URL},
-            },
-        },
-        indent=4,
-    )
-
+"""
 
 if __name__ == "__main__":
     logger.info("Starting backend")
