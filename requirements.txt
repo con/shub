@@ -1,3 +1,4 @@
+click
 requests
 sanic>=20.12,<20.13
 sanic-cors
