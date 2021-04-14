@@ -229,7 +229,7 @@ def main(json_path):
                 res[id_] = rec
 
     logger.info("Starting backend")
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=5003)
 
 
 if __name__ == "__main__":
