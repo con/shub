@@ -11,9 +11,9 @@ jobs:
       fail-fast: false
       matrix:
         python:
-          - 3.6
           - 3.7
           - 3.8
+          - 3.9
     steps:
     - name: Check out source code
       uses: actions/checkout@v1
