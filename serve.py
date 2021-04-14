@@ -4,6 +4,10 @@ able to fetch singularity images.
 
 It will be reverse proxied for https://singularity-hub.org/api/
 (so any other component will be handled at web server level)
+
+TODO: may be we should provide redirect also for
+/collections/<id>
+to go to specific folder within datalad dataset???
 """
 
 import asyncio
@@ -17,10 +21,12 @@ import requests
 
 # TODO: move from repronim to hub
 GOTO_URL = "https://datasets.datalad.org/?dir=/repronim"
+# it is difference since this is direct url without web ui
+TOP_URL = "https://datasets.datalad.org/repronim"
 
 # TODO: do establish logging for deployed instance
 
-production = True # "DEV628cc89a6444" not in os.environ
+production = False # "DEV628cc89a6444" not in os.environ
 sem = None
 basedir = os.getcwd() # environ["HOME"] if production else os.getcwd()
 logdir = os.path.join(basedir, "logs")
@@ -112,14 +118,63 @@ async def init(app, loop):
 async def main(request):
     return response.redirect(GOTO_URL)
 
+#
+# Since Yarik knows no sanic etc, he would just populate
+# this data structure to be used in the endpoints
+#
+_data_ = {}
 
-@app.route("container/<collection>/<container>", methods=["GET", "HEAD"])
-async def goto_dandiset(request, collection, container):
+headers = {
+    "Content-Type": "application/json",
+}
+
+"""
+currently from singularity-hub
+< HTTP/1.1 200 OK
+< Server: nginx/1.13.5
+< Date: Wed, 14 Apr 2021 22:48:02 GMT
+< Content-Type: application/json
+< Content-Length: 1156
+< Connection: keep-alive
+< Vary: Accept, Cookie
+< Allow: GET, HEAD, OPTIONS
+< X-Frame-Options: SAMEORIGIN
+"""
+@app.route("container/<org:[^/]+>/<repo:[^/:]+><tag:.*>", methods=["GET", "HEAD"])
+async def goto_dandiset(request, org, repo, tag):
     """Parse/handle the query
     """
-    return response.json({
-            "collection": collection
-        })
+    try:
+        name = f"{org}/{repo}"
+        collection = _data_['records'].get(name, None)
+        # debug
+        # return response.json(
+        #     {
+        #         "name": name,
+        #         "org": org,
+        #         "repo": repo,
+        #         "collection": collection,
+        #         "found": bool(collection)},
+        #     headers=headers
+        # )
+        if collection:
+            if tag and tag.startswith(':'):
+                tag = tag[1:]
+            if not tag:
+                tag = 'latest'
+            if tag in collection:
+                return response.json(collection[tag], headers=headers)
+        return response.json(
+            {"detail": "Not found."},
+            status=404,
+            headers=headers
+        )
+    except Exception as exc:
+        return response.json(
+            {"detail": f"Exception {exc}"},
+            status=500,
+            headers=headers
+        )
 
 """
     if not re.fullmatch(dandiset_identifier_regex, dataset):
@@ -133,6 +188,49 @@ async def goto_dandiset(request, collection, container):
     return response.text(f"dandi:{dataset} not found.", status=404)
 """
 
-if __name__ == "__main__":
+
+import click
+import json
+
+
+@click.command()
+@click.argument("json_path", type=click.Path(exists=True, file_okay=True))
+def main(json_path):
+    logger.info("Loading")
+    with open(json_path) as f:
+        raw = json.load(f)
+
+    # prepare target complete records to return
+    logger.info("Preparing final records")
+    # to ease comparison etc
+    fields_order = 'id', 'name', 'branch', 'commit', 'tag', 'version', 'size_mb', 'image'
+    _data_['records'] = recs = {}
+    for name, files in raw.items():
+        recs[name] = res = {}  # tag: { ready image record }
+        for f in files:
+            rec = f.copy()
+            rec['name'] = name
+            rec['image'] = f"{TOP_URL}/{rec.pop('file')}"
+            # order (and "pop") the fields to match the one we observe with
+            # stock singularity hubwhich we just eagerly got but not needed
+            rec = {
+                _: rec[_] for _ in fields_order if _ in rec
+            }
+            # what lookups are "supported
+            for id_field in 'tag', 'version':
+                id_ = f[id_field]
+                # TODO:
+                # https://github.com/vsoch/shub/blob/f092ba1977238ac525db62181c1ff7145bc3170b/shub/apps/main/query.py#L103
+                # we should get the latest one according to build_date
+                # Yet to be extracted/used here to disambiguate
+                # if id_ in res:
+                #     raise ValueError(
+                #         f"Already have record for name={name} {id_field}={id_}")
+                res[id_] = rec
+
     logger.info("Starting backend")
     app.run(host="0.0.0.0", port=8080)
+
+
+if __name__ == "__main__":
+    main()
