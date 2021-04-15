@@ -11,13 +11,13 @@ to go to specific folder within datalad dataset???
 """
 
 import asyncio
-import re
+import click
+import json
 import os
 from sanic import Sanic
 from sanic.log import logger
 from sanic import response
 from sanic_cors import CORS
-import requests
 
 # TODO: move from repronim to hub
 GOTO_URL = "https://datasets.datalad.org/?dir=/repronim"
@@ -26,7 +26,7 @@ TOP_URL = "https://datasets.datalad.org/repronim"
 
 # TODO: do establish logging for deployed instance
 
-production = False # "DEV628cc89a6444" not in os.environ
+production = False  # "DEV628cc89a6444" not in os.environ
 sem = None
 basedir = os.getcwd() # environ["HOME"] if production else os.getcwd()
 logdir = os.path.join(basedir, "logs")
@@ -128,18 +128,7 @@ headers = {
     "Content-Type": "application/json",
 }
 
-"""
-currently from singularity-hub
-< HTTP/1.1 200 OK
-< Server: nginx/1.13.5
-< Date: Wed, 14 Apr 2021 22:48:02 GMT
-< Content-Type: application/json
-< Content-Length: 1156
-< Connection: keep-alive
-< Vary: Accept, Cookie
-< Allow: GET, HEAD, OPTIONS
-< X-Frame-Options: SAMEORIGIN
-"""
+
 @app.route("container/<org:[^/]+>/<repo:[^/:]+><tag:.*>", methods=["GET", "HEAD"])
 async def goto_dandiset(request, org, repo, tag):
     """Parse/handle the query
@@ -176,22 +165,6 @@ async def goto_dandiset(request, org, repo, tag):
             headers=headers
         )
 
-"""
-    if not re.fullmatch(dandiset_identifier_regex, dataset):
-        return response.text(f"{dataset}: invalid Dandiset ID", status=400)
-    req = requests.get(f"{GIRDER_LOCAL_URL}/api/v1/dandi/{dataset}")
-    if req.reason == "OK":
-        url = f"{GUI_URL}/#/dandiset/{dataset}/draft"
-        if request.method == "HEAD":
-            return response.html(None, status=302, headers=make_header(url))
-        return response.redirect(url)
-    return response.text(f"dandi:{dataset} not found.", status=404)
-"""
-
-
-import click
-import json
-
 
 @click.command()
 @click.argument("json_path", type=click.Path(exists=True, file_okay=True))
@@ -201,6 +174,8 @@ def main(json_path):
         raw = json.load(f)
 
     # prepare target complete records to return
+    # Decided to keep this logic here so we could adjust
+    # matching without needing to regenerate input file
     logger.info("Preparing final records")
     # to ease comparison etc
     fields_order = 'id', 'name', 'branch', 'commit', 'tag', 'version', 'size_mb', 'image', 'build_date'
@@ -212,7 +187,7 @@ def main(json_path):
             rec['name'] = name
             rec['image'] = f"{TOP_URL}/{rec.pop('file')}"
             # order (and "pop") the fields to match the one we observe with
-            # stock singularity hubwhich we just eagerly got but not needed
+            # stock singularity hub which we just eagerly got but not needed
             rec = {
                 _: rec[_] for _ in fields_order if _ in rec
             }
