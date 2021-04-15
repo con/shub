@@ -69,6 +69,7 @@ def main(dump_path, output_json):
                 "tag": fields["tag"],
                 "commit": fields["commit"],
                 "version": fields["version"],
+                "build_date": fields["build_date"],
                 # this is apparently not a size of the image!
                 # API does report it as well. correct 'size': '62652447',
                 # is in 'files' record
