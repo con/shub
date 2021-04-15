@@ -203,7 +203,7 @@ def main(json_path):
     # prepare target complete records to return
     logger.info("Preparing final records")
     # to ease comparison etc
-    fields_order = 'id', 'name', 'branch', 'commit', 'tag', 'version', 'size_mb', 'image'
+    fields_order = 'id', 'name', 'branch', 'commit', 'tag', 'version', 'size_mb', 'image', 'build_date'
     _data_['records'] = recs = {}
     for name, files in raw.items():
         recs[name] = res = {}  # tag: { ready image record }
@@ -219,14 +219,20 @@ def main(json_path):
             # what lookups are "supported
             for id_field in 'tag', 'version':
                 id_ = f[id_field]
-                # TODO:
-                # https://github.com/vsoch/shub/blob/f092ba1977238ac525db62181c1ff7145bc3170b/shub/apps/main/query.py#L103
-                # we should get the latest one according to build_date
-                # Yet to be extracted/used here to disambiguate
-                # if id_ in res:
-                #     raise ValueError(
-                #         f"Already have record for name={name} {id_field}={id_}")
+                if id_ in res:
+                    # replace only if build_date is after a known one
+                    # due to use of iso I think string comparison should be
+                    # good enough
+                    if res[id_]['build_date'] > rec['build_date']:
+                        continue  # we do not replace
                 res[id_] = rec
+
+    # strip away all build_date's
+    for _, tags in recs.items():
+        for _, r in tags.items():
+            # could be already gone since we bind the same record across
+            # multiple tags
+            r.pop('build_date', None)
 
     logger.info("Starting backend")
     app.run(host="0.0.0.0", port=5003)
