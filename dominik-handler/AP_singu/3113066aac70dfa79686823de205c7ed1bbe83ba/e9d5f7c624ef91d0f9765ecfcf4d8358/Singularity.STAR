@@ -1,0 +1,1 @@
+../../../../.git/annex/objects/p2/3J/MD5E-s780--4bf3f2ba1dc8538a8503dc5b82c6ecd0.STAR/MD5E-s780--4bf3f2ba1dc8538a8503dc5b82c6ecd0.STAR
