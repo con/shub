@@ -1,0 +1,5 @@
+[submodule "_data_/monolith"]
+	path = _data_/monolith
+	url = smaug:/mnt/btrfs/scrap/shub/datalad-monolith
+	datalad-id = 050eafc5-0f78-4b71-a95f-e8b2445ffb32
+	datalad-url = smaug:/mnt/btrfs/scrap/shub/datalad-monolith
