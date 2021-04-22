@@ -56005,6 +56005,18 @@
       "file": "singularityhub/github.com/BarquistLab/proQ_conventionalMouse_dataAnalysis/bbc016de6f271ec45afa1361a77ffa8e6d7c2716/bcd007bab092c2f828eb6b678443967e/bcd007bab092c2f828eb6b678443967e.sif",
       "size": 721829919,
       "md5": "bcd007bab092c2f828eb6b678443967e"
+    },
+    {
+      "id": 11037,
+      "branch": "master",
+      "tag": "def",
+      "commit": "c2a1ef7ab1c8bdb65f14f3e0f22a001364e79c77",
+      "version": null,
+      "build_date": "2019-09-27T13:25:14.161Z",
+      "size_mb": null,
+      "file": "BarquistLab/proQ_conventionalMouse_dataAnalysis/c2a1ef7ab1c8bdb65f14f3e0f22a001364e79c77/01943e6c02fa586b8a9cbdc0cbde77b2/01943e6c02fa586b8a9cbdc0cbde77b2.sif",
+      "size": 568303647,
+      "md5": "01943e6c02fa586b8a9cbdc0cbde77b2"
     }
   ],
   "serheang/sc_katacoda": [
@@ -56377,6 +56389,20 @@
       "file": "singularityhub/github.com/stephansmit/inkscape_containers/0b2aca70e7f868aff73521794a9c82e7d97a6b42/e3b83cedca59510df861f68cebf03e32/e3b83cedca59510df861f68cebf03e32.sif",
       "size": 179085343,
       "md5": "e3b83cedca59510df861f68cebf03e32"
+    }
+  ],
+  "tin6150/CMAQ": [
+    {
+      "id": 11066,
+      "branch": "tin_521_docker",
+      "tag": "latest",
+      "commit": "421be3c3a46c84e673dd615745e8606f54cd2764",
+      "version": null,
+      "build_date": "2021-03-19T16:06:56.980Z",
+      "size_mb": null,
+      "file": "tin6150/CMAQ/421be3c3a46c84e673dd615745e8606f54cd2764/cd8c0d5381d39aa324518fba00dbf5ee/cd8c0d5381d39aa324518fba00dbf5ee.sif",
+      "size": 562749471,
+      "md5": "cd8c0d5381d39aa324518fba00dbf5ee"
     }
   ],
   "okuisatoshi/singularity-yotta": [
@@ -58009,6 +58035,18 @@
       "file": "singularityhub/github.com/TomHarrop/ont-containers/c18076eb766c3823b9b0fa500bcb5bc4eafdc125/9df30f57c8b7928c6923989ae4df8e965fc39aaa5a23c5ba4739194c033f45f4/9df30f57c8b7928c6923989ae4df8e965fc39aaa5a23c5ba4739194c033f45f4.sif",
       "size": 394866688,
       "md5": "acb5a373e8efa11670bd2c15bb87e497"
+    },
+    {
+      "id": 12812,
+      "branch": "master",
+      "tag": "guppy_3.6.0",
+      "commit": "2fa3f3986ad17d8e15ac888dce5dc21c7817c500",
+      "version": null,
+      "build_date": "2020-06-29T03:18:06.381Z",
+      "size_mb": null,
+      "file": "TomHarrop/ont-containers/2fa3f3986ad17d8e15ac888dce5dc21c7817c500/87c4b979478c254e2cafc937d41d4a3d055d363f61875c5121300be394dc99c2/87c4b979478c254e2cafc937d41d4a3d055d363f61875c5121300be394dc99c2.sif",
+      "size": 568725504,
+      "md5": "e61eb8c31e74862f1d7c13e13bc648b5"
     },
     {
       "id": 13494,
@@ -63713,6 +63751,20 @@
       "md5": "1df7d62bd10f726b3534e86a7dfd050b"
     }
   ],
+  "amenra99/hpc-ml": [
+    {
+      "id": 12298,
+      "branch": "master",
+      "tag": "centos7-python37",
+      "commit": "f1ae4386f97f6af67bf90c635419841213a6cd21",
+      "version": null,
+      "build_date": "2020-06-29T08:56:03.268Z",
+      "size_mb": null,
+      "file": "amenra99/hpc-ml/f1ae4386f97f6af67bf90c635419841213a6cd21/b07ce69281693b6931e9c35b442bc33fd2be115a26f574b7004dd88df765d282/b07ce69281693b6931e9c35b442bc33fd2be115a26f574b7004dd88df765d282.sif",
+      "size": 4878151680,
+      "md5": "fc4d4aa663ddabae2646a96e0f9edc64"
+    }
+  ],
   "jameslehoux/openimpala-singularity": [
     {
       "id": 12299,
@@ -65991,6 +66043,18 @@
       "file": "singularityhub/github.com/masoudrezai/Singularity/bdd0bf48a9bf923a6dee8a3fc827ce433aa5f88e/6c92d7c036489ef8cb8108568b42ac4d/6c92d7c036489ef8cb8108568b42ac4d.sif",
       "size": 6003204127,
       "md5": "6c92d7c036489ef8cb8108568b42ac4d"
+    },
+    {
+      "id": 12677,
+      "branch": "master",
+      "tag": "6",
+      "commit": "09ff2fe1f6b737a813e681894c510248f878f5b5",
+      "version": null,
+      "build_date": "2020-04-09T15:59:55.469Z",
+      "size_mb": null,
+      "file": "masoudrezai/Singularity/09ff2fe1f6b737a813e681894c510248f878f5b5/830123edea772cc1f2ea5f8d2746e1e3/830123edea772cc1f2ea5f8d2746e1e3.sif",
+      "size": 6150086687,
+      "md5": "830123edea772cc1f2ea5f8d2746e1e3"
     },
     {
       "id": 12714,
@@ -71845,6 +71909,20 @@
       "md5": "1be635ba3429a7984624e600a1bc8f34"
     }
   ],
+  "libii/ubuntu-python3-hello-world": [
+    {
+      "id": 13887,
+      "branch": "master",
+      "tag": "sif",
+      "commit": "78ddce0b07a4b97438db7131e2fe4a065593244f",
+      "version": null,
+      "build_date": "2020-08-07T05:53:59.815Z",
+      "size_mb": null,
+      "file": "libii/ubuntu-python3-hello-world/78ddce0b07a4b97438db7131e2fe4a065593244f/b2ada075ac72709233f724bb002b8759211ca33a01fe624ccd750b07006671d1/b2ada075ac72709233f724bb002b8759211ca33a01fe624ccd750b07006671d1.sif",
+      "size": 83890176,
+      "md5": "d1ff3b0fbca9f9bd23a21ba546dde27c"
+    }
+  ],
   "drewpolasky/r_aci": [
     {
       "id": 13891,
@@ -73019,6 +73097,18 @@
       "file": "singularityhub/github.com/chrisvriend/ENIGMA_subthal/f2c0d0d2f0929d10b5607e98bf91db1a230517a9/3615791d2dfa285157c8940625cccc9a/3615791d2dfa285157c8940625cccc9a.sif",
       "size": 5620969503,
       "md5": "3615791d2dfa285157c8940625cccc9a"
+    },
+    {
+      "id": 14515,
+      "branch": "build3",
+      "tag": "sl2stretch",
+      "commit": "f21d9f575c576b50d12de4c645a7c9281625017a",
+      "version": null,
+      "build_date": "2020-11-20T11:53:13.765Z",
+      "size_mb": null,
+      "file": "chrisvriend/ENIGMA_subthal/f21d9f575c576b50d12de4c645a7c9281625017a/cde2f33a9a3db480dd76f2058644a5f8/cde2f33a9a3db480dd76f2058644a5f8.sif",
+      "size": 5620768799,
+      "md5": "cde2f33a9a3db480dd76f2058644a5f8"
     },
     {
       "id": 14926,
@@ -74479,6 +74569,32 @@
       "md5": "44d1a34a8767c8583ddf44f078478048"
     }
   ],
+  "powellgenomicslab/sceQTL_pipelines": [
+    {
+      "id": 14600,
+      "branch": "main",
+      "tag": "sceqtl_base",
+      "commit": "15df0088a13d99942d088b1fab3fd107d095ba4d",
+      "version": null,
+      "build_date": "2021-03-31T12:07:44.594Z",
+      "size_mb": null,
+      "file": "powellgenomicslab/sceQTL_pipelines/15df0088a13d99942d088b1fab3fd107d095ba4d/504195eac2d78ac8018d23869d9be3bc/504195eac2d78ac8018d23869d9be3bc.sif",
+      "size": 1120198687,
+      "md5": "504195eac2d78ac8018d23869d9be3bc"
+    },
+    {
+      "id": 14711,
+      "branch": "main",
+      "tag": "sceqtl_pipelines",
+      "commit": "0694c9c5da717ca228b88e376837b507d9a5736a",
+      "version": "bccc77948eafef27bd043f4f081fee5e",
+      "build_date": "2021-03-31T07:08:47.896Z",
+      "size_mb": 6082.0,
+      "file": "singularityhub/github.com/powellgenomicslab/sceQTL_pipelines/0694c9c5da717ca228b88e376837b507d9a5736a/bccc77948eafef27bd043f4f081fee5e/bccc77948eafef27bd043f4f081fee5e.sif",
+      "size": 2364518431,
+      "md5": "bccc77948eafef27bd043f4f081fee5e"
+    }
+  ],
   "tgac-vumc/BLADE": [
     {
       "id": 14613,
@@ -75129,20 +75245,6 @@
       "md5": "a90bfcf42fc9fa0508e4d50b5ff44e55"
     }
   ],
-  "powellgenomicslab/sceQTL_pipelines": [
-    {
-      "id": 14711,
-      "branch": "main",
-      "tag": "sceqtl_pipelines",
-      "commit": "0694c9c5da717ca228b88e376837b507d9a5736a",
-      "version": "bccc77948eafef27bd043f4f081fee5e",
-      "build_date": "2021-03-31T07:08:47.896Z",
-      "size_mb": 6082.0,
-      "file": "singularityhub/github.com/powellgenomicslab/sceQTL_pipelines/0694c9c5da717ca228b88e376837b507d9a5736a/bccc77948eafef27bd043f4f081fee5e/bccc77948eafef27bd043f4f081fee5e.sif",
-      "size": 2364518431,
-      "md5": "bccc77948eafef27bd043f4f081fee5e"
-    }
-  ],
   "darachm/singularity_ncbi-blast": [
     {
       "id": 14722,
@@ -75271,6 +75373,18 @@
       "file": "singularityhub/github.com/WhalleyT/singularity-recipes/7e5194920acf156c41b0946e02241db3bd1716dc/0eb36e3976d5eff9aad596b3eb593db5/0eb36e3976d5eff9aad596b3eb593db5.sif",
       "size": 1110839327,
       "md5": "0eb36e3976d5eff9aad596b3eb593db5"
+    },
+    {
+      "id": 14771,
+      "branch": "master",
+      "tag": "covid",
+      "commit": "f2aa6211936d8b74e26c634d766a446545b3c0bb",
+      "version": null,
+      "build_date": "2021-04-14T21:56:11.348Z",
+      "size_mb": null,
+      "file": "WhalleyT/singularity-recipes/f2aa6211936d8b74e26c634d766a446545b3c0bb/22f0de2c5e1a12ac106b48b5a257d59d/22f0de2c5e1a12ac106b48b5a257d59d.sif",
+      "size": 714686495,
+      "md5": "22f0de2c5e1a12ac106b48b5a257d59d"
     }
   ],
   "marcjwilliams1/rstudiosrvrV4": [
