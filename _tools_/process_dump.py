@@ -141,6 +141,11 @@ def main(dump_path, monolith_path, output_json):
                     base64.b64decode(target_file['md5Hash'])).lower().decode()
                 assert target_file['md5'] == annex_key_parsed['md5']
                 assert target_file['size'] == annex_key_parsed['size']
+                # strip away leading prefix including github.com
+                pref = '/github.com/'
+                # just use the one we deduced in monolith -- will be fixed
+                # for singularityhub-legacy
+                target_file['name'] = mon_relpath  # target_file['name'][target_file['name'].index(pref) + len(pref):]
             else:
                 # it still might be there and may be just a bug in DB?
                 # TODO: check e.g. for BarquistLab/proQ_conventionalMouse_dataAnalysis
@@ -155,6 +160,7 @@ def main(dump_path, monolith_path, output_json):
                 }
             # TODO: just store relevant   image?
             rec['file'] = target_file['name']
+            assert rec['file'].count('/') == 4
             rec['size'] = int(target_file['size'])
             rec['md5'] = target_file['md5']
             recs[fields['name']].append(rec)
