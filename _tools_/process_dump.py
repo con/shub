@@ -32,9 +32,11 @@ __license__ = 'MIT'
 import base64
 from collections import defaultdict
 import click
+import re
 import tqdm
 import json
 from pathlib import Path
+from urllib.parse import urlsplit, unquote
 
 
 def get_sif_files(fields):
@@ -46,11 +48,36 @@ def get_sif_files(fields):
             )
     ]
 
+
+def get_path_from_url(url):
+    """Given image url, extract path to image within monolith"""
+    u = urlsplit(url)
+    if not u.netloc in ('storage.googleapis.com', 'www.googleapis.com'):
+        import pdb; pdb.set_trace()
+    pref = '%2Fgithub.com%2F'
+    if not u.path.index(pref):
+        import pdb; pdb.set_trace()
+    p = unquote(u.path[u.path.index(pref) + len(pref):])
+    # legacy were tuned up to include the same md5 dir/ for consistency:
+    if '/singularityhub-legacy/' in url:
+        pp = Path(p)
+        md5 = pp.name[:32]
+        p = str(pp.parent / md5 / pp.name)
+    return p
+
+
+def from_annex_key(key):
+    res = re.match("(?P<backend>MD5E)-s(?P<size>\d+)--(?P<md5>[0-9a-f]{32})(?P<ext>.*)", key)
+    assert res
+    return res.groupdict()
+
+
 @click.command()
 @click.argument("dump_path", type=click.Path(exists=True, file_okay=False))
+@click.argument("monolith_path", type=click.Path(exists=True, file_okay=False))
 @click.argument("output_json", type=click.Path(exists=False, file_okay=True))
 # TODO: option to point to filestore so we could check
-def main(dump_path, output_json):
+def main(dump_path, monolith_path, output_json):
     recs = defaultdict(list)
     with (Path(dump_path) / "main.container.json").open() as f:
         orig_recs = json.load(f)
@@ -85,6 +112,7 @@ def main(dump_path, output_json):
             # if len(sif_files) != 1:
             #     import pdb; pdb.set_trace()
             # assert len(sif_files) == 1
+            target_file = None
             if target_file:
                 assert len(sif_files) == 1
                 assert sif_files[0] == target_file
@@ -94,19 +122,56 @@ def main(dump_path, output_json):
                 # redirects already + a few in https://storage.googleapis.com/
                 # Let's fish out among files
                 target_file = sif_files[0]
+
+            # Parse monolith's annex key for extra check for paranoids
+            # + to handle the cases where we do not have proper record
+            # but do have a url
+            img_url = fields['image']
+            if 'datasets.datalad.org' in img_url:
+                assert target_file
+                img_url = target_file['mediaLink']
+            mon_relpath = get_path_from_url(img_url)
+            mon_path = (Path(monolith_path) / mon_relpath)
+            if not mon_path.is_symlink():
+                raise RuntimeError(f"Found no symlink under {mon_path}")
+            annex_key_parsed = from_annex_key(mon_path.readlink().name)
+
+            if target_file:
+                target_file['md5'] = base64.b16encode(
+                    base64.b64decode(target_file['md5Hash'])).lower().decode()
+                assert target_file['md5'] == annex_key_parsed['md5']
+                assert target_file['size'] == annex_key_parsed['size']
             else:
                 # it still might be there and may be just a bug in DB?
                 # TODO: check e.g. for BarquistLab/proQ_conventionalMouse_dataAnalysis
                 # tag def
-                print(f"Found no target image file for {fields['name']}:{fields['tag']} . "
-                      f"Image url was {fields['image']} but found no matching file record")
-                continue
+                #print(f"Found no target image file for {fields['name']}:{fields['tag']} . "
+                #      f"Image url was {fields['image']} but found no matching file record")
+                # So we will deduce it from the image URL
+                target_file = {
+                    'name': mon_relpath,
+                    'size': int(annex_key_parsed['size']),
+                    'md5': annex_key_parsed['md5']
+                }
             # TODO: just store relevant   image?
             rec['file'] = target_file['name']
             rec['size'] = int(target_file['size'])
-            rec['md5'] = base64.b16encode(
-                 base64.b64decode(target_file['md5Hash'])).lower().decode()
+            rec['md5'] = target_file['md5']
             recs[fields['name']].append(rec)
+
+    # TODO: traverse monolith and ensure that we do no have some images which
+    # are not in our output record
+    all_under_monolith = (str(p.relative_to(monolith_path)) for p in Path(monolith_path).glob('*/*'))
+    all_under_monolith = set(x for x in all_under_monolith if not (x.startswith('.') or x.startswith('_')))
+
+    # should be given since we did test all the images above
+    assert not set(recs).difference(all_under_monolith)
+    # but here we discover a good number of prefixes which do not have DB dump record
+    loose_collections = all_under_monolith.difference(recs)
+    if loose_collections:
+        print(
+            f"WARNING: found {len(loose_collections)}  out of {len(all_under_monolith)} loose collections "
+            f"(having no image in main.container.json): {loose_collections}")
     with open(output_json, 'w') as f:
         json.dump(recs, f, indent=2)  # TODO: remove indent for production
 
