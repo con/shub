@@ -272,7 +272,12 @@ def rename_remove(monolith_path, images_json):
         for r in containers:
             col_ = op.join(*Path(r['file_orig']).parts[:2])
             if col_ in known_collections:
-                assert known_collections[col_] == int(r['collection'])
+                # in case of narrative/remoll  there is 214 with image
+                # and 254 without image :-/ So we cannot assert
+                # assert known_collections[col_] == int(r['collection'])
+                # Let's just inform - and it seems we have just few
+                if known_collections[col_] != int(r['collection']):
+                    print(f"WARNING: for {col_} known as {known_collections[col_]} we also have {r['collection']}")
             else:
                 known_collections[col_] = r['collection']
                 # and we need to adjust mapping since that is where it would be found now
@@ -294,6 +299,7 @@ def rename_remove(monolith_path, images_json):
     # import pdb; pdb.set_trace()
 
     for c, dirs in cols_under_monolith.items():
+        continue
         if c not in known_collections:
             print(f"Removing {c}")
             ## repo.call_git(['rm', '-rf', c])
