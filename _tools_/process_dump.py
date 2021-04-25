@@ -167,6 +167,7 @@ def dump_data(dump_path, monolith_path, output_json):
                 }
             # TODO: just store relevant   image?
             rec['file'] = target_file['name']
+            rec['collection'] = fields['collection']
             assert rec['file'].count('/') == 4
             rec['size'] = int(target_file['size'])
             rec['md5'] = target_file['md5']
@@ -252,21 +253,34 @@ def get_shorter_file_rec(r):
 # TODO: option to point to filestore so we could check
 def rename_remove(monolith_path, images_json):
     """Take new "file" paths and rename, and also remove those which are not known"""
+    from datalad.support.annexrepo import AnnexRepo
+    repo = AnnexRepo(monolith_path)
     with open(images_json) as f:
         data = json.load(f)
 
+    # Remove all collections which are not included
+    known_collections = [r['full_name'] for r in data['collections'].values()]
+
     dirs_under_monolith = set(str(p.relative_to(monolith_path)) for p in Path(monolith_path).glob('*/*/*/*'))
-#    dirs_images = itertools.chain(*([op.dirname(x['file']) for x in recs] for recs in images.values()))
-    # all_under_monolith = set(x for x in all_under_monolith if not (x.startswith('.') or x.startswith('_')))
+    dirs_under_monolith = set(x for x in dirs_under_monolith if not (x.startswith('.') or x.startswith('_')))
+    # group by collection
+    cols_under_monolith = defaultdict(list)
+    for d in dirs_under_monolith:
+        cols_under_monolith[op.join(*Path(d).parts[:2])].append(d)
+    for c, dirs in cols_under_monolith.items():
+        if c not in known_collections:
+            print(f"Removing {c}")
+            repo.call_git(['rm', '-rf', c])
+        else:
+            print(f"Renaming for {c}")
+            # for container
 
-    for collection, containers in data['images'].items():
-        for container in containers:
-            container.update(get_shorter_file_rec(container))
+    dirs_images = itertools.chain(
+        *([op.dirname(x['file']) for x in recs] for recs in data['images'].values())
+    )
 
+    #
     import pdb; pdb.set_trace()
-
-    with open(images_json, 'w') as f:
-        json.dump(data, f, indent=2)  # TODO: remove indent for production
 
 
 if __name__ == '__main__':
