@@ -257,6 +257,7 @@ def rename_remove(monolith_path, images_json):
     """Take new "file" paths and rename, and also remove those which are not known"""
     from datalad.support.annexrepo import AnnexRepo
     repo = AnnexRepo(monolith_path)
+    monolith_path = Path(monolith_path)
     with open(images_json) as f:
         data = json.load(f)
 
@@ -286,26 +287,57 @@ def rename_remove(monolith_path, images_json):
                     rcol['full_name_orig'] = rcol['full_name']
                 rcol['full_name'] = col_
 
-    dirs_under_monolith = set(str(p.relative_to(monolith_path)) for p in Path(monolith_path).glob('*/*/*/*'))
+    dirs_under_monolith = set(str(p.relative_to(monolith_path)) for p in monolith_path.glob('*/*/*/*'))
     dirs_under_monolith = set(x for x in dirs_under_monolith if not (x.startswith('.') or x.startswith('_')))
     # group by collection
     cols_under_monolith = defaultdict(list)
     for d in dirs_under_monolith:
         cols_under_monolith[op.join(*Path(d).parts[:2])].append(d)
 
-    dirs_images = list(itertools.chain(
-        *([op.dirname(x['file']) for x in recs] for recs in data['images'].values())
+    dirs_images = set(itertools.chain(
+        *([op.dirname(x['file_orig']) for x in recs] for recs in data['images'].values())
     ))
     # import pdb; pdb.set_trace()
 
-    for c, dirs in cols_under_monolith.items():
-        continue
+    # Let's first remove all those collections which aren't known:
+    # Do it first so when we get to rename container dirs, we fail if
+    # entire collections is gone (which should not happen)
+    to_remove = []
+    for c in sorted(cols_under_monolith):
         if c not in known_collections:
-            print(f"Removing {c}")
-            ## repo.call_git(['rm', '-rf', c])
-        else:
-            print(f"Renaming for {c}")
-            # for container
+            print(f"{c}: removing entirely")
+            to_remove.append(c)
+            cols_under_monolith.pop(c)
+        # remove individual image directories
+        keep = []
+        for d in cols_under_monolith[c]:
+            if d not in dirs_images:
+                print(f"{c}: removing {d}")
+                to_remove.append(d)
+            else:
+                keep.append(d)
+        cols_under_monolith[c] = d
+    if to_remove:
+        print(f"REMOVING {len(to_remove)} directories")
+        repo.call_git(['rm', '-rf'] + to_remove)
+        repo.call_git(['clean', '-dfx'])
+
+    # Now we need to rename all what is left
+    for c, containers in sorted(data['images'].items()):
+        for con in containers:
+            src = op.dirname(con['file_orig'])
+            assert len(src) > 74  # sanitycheck - should have at least committish and checksu
+            dest = op.dirname(con['file'])
+            # we do it once!
+            assert (monolith_path / src).exists()
+            assert not (monolith_path / dest).exists()
+            pdest = (monolith_path / dest).parent
+            if not pdest.exists():
+                pdest.mkdir(parents=True)
+            print(f"Moving {src} to {dest}")
+            repo.call_git(['mv', src, dest])
+
+    repo.call_git(['clean', '-dfx'])
 
     # we might have adjusted collections
     with open(images_json, 'w') as f:
@@ -314,46 +346,3 @@ def rename_remove(monolith_path, images_json):
 
 if __name__ == '__main__':
     main()
-
-
-
-"""
-Need following for the results to return
-  "id": 11888,                                                                                                                                                                                                       
-  "name": "ReproNim/reproin",                                                                                                                                                                                        
-  "branch": "master",                                                                                                                                                                                                
-  "commit": "7def9299ea40bd191efb5b3ab5f3bdc3c2c4b62d",                                                                                                                                                              
-  "tag": "latest",                                                                                                                                                                                                   
-  "version": "361dd7824960bb8eb43b699f90b977cf",                                                                                                                                                                     
-  "size_mb": 1332,                                                                                                                                                                                                   
-  "image":  
-
-sample rec
-    'collection': 17,
-    'branch': 'master',
-    'tag': 'latest',
-    'name': 'vsoch/hello-world',
-    'build_date': '2021-04-12T12:26:14.487Z',
-    'build_log': 'True',
-    'files': [
-        {
-            'id': 'singularityhub/singularityhub/github.com/vsoch/hello-world/3bac21df631874e3cbb3f0cf6fc9af1898f4cc3d/104932c9ca80c0eb90ebf6a80b7d7400/104932c9ca80c0eb90ebf6a80b7d7400.sif/1563547843599870',
-            'etag': 'CP67us6dweMCEAE=',
-            'kind': 'storage#object',
-            'name': 'singularityhub/github.com/vsoch/hello-world/3bac21df631874e3cbb3f0cf6fc9af1898f4cc3d/104932c9ca80c0eb90ebf6a80b7d7400/104932c9ca80c0eb90ebf6a80b7d7400.sif',
-            'size': '62652447',
-            'bucket': 'singularityhub',
-            'crc32c': '8VqIHA==',
-            'md5Hash': 'EEkyycqAwOuQ6/aoC310AA==',
-            'updated': '2019-07-19T14:50:43.599Z',
-            'selfLink': 'https://www.googleapis.com/storage/v1/b/singularityhub/o/singularityhub%2Fgithub.com%2Fvsoch%2Fhello-world%2F3bac21df631874e3cbb3f0cf6fc9af1898f4cc3d%2F104932c9ca80c0eb90ebf6a80b7d7400%2F1
-04932c9ca80c0eb90ebf6a80b7d7400.sif',
-            'mediaLink': 'https://www.googleapis.com/download/storage/v1/b/singularityhub/o/singularityhub%2Fgithub.com%2Fvsoch%2Fhello-world%2F3bac21df631874e3cbb3f0cf6fc9af1898f4cc3d%2F104932c9ca80c0eb90ebf6a80b
-7d7400%2F104932c9ca80c0eb90ebf6a80b7d7400.sif?generation=1563547843599870&alt=media',
-            'generation': '1563547843599870',
-            'contentType': 'text/plain',
-            'timeCreated': '2019-07-19T14:50:43.599Z',
-            'storageClass': 'REGIONAL',
-            'metageneration': '1',
-            'timeStorageClassUpdated': '2019-07-19T14:50:43.599Z'
-"""
