@@ -202,9 +202,9 @@ def dump_data(dump_path, monolith_path, output_json):
             }
             if not (monolith_path / full_name).is_dir():
                 # print(f"WARNING: no monolith dir for {r['pk']}: {full_name}")
-                missing_dir[r['pk']] = rec
+                missing_dir[int(r['pk'])] = rec
             else:
-                collections[r['pk']] = rec
+                collections[int(r['pk'])] = rec
     print(f"INFO: collected {len(collections)} collections")
     if missing_dir:
         print(
@@ -264,7 +264,7 @@ def rename_remove(monolith_path, images_json):
     # in the actual container images file tree
     for col, containers in data['images'].items():
         for r in containers:
-            col_ = op.join(Path(r['file_orig']).parts[:2])
+            col_ = op.join(*Path(r['file_orig']).parts[:2])
             if col_ in known_collections:
                 assert known_collections[col_] == r['collection']
             else:
