@@ -26,12 +26,12 @@ TOP_URL = "https://datasets.datalad.org/shub"
 
 # TODO: do establish logging for deployed instance
 
-production = False  # "DEV628cc89a6444" not in os.environ
+production = "DEV628cc89a6444" not in os.environ
 sem = None
 basedir = os.getcwd() # environ["HOME"] if production else os.getcwd()
-logdir = os.path.join(basedir, "logs")
+logdir = os.path.join(basedir, "_logs_", "sanic")
 if not os.path.exists(logdir):
-    os.makedirs(logdir, exist_ok=True)
+    os.makedirs(logdir, mode=0o700, exist_ok=True)
 
 handler_dict = {
     "class": "logging.handlers.TimedRotatingFileHandler",
@@ -69,7 +69,8 @@ LOG_SETTINGS = dict(
         },
         "access_consolefile": {
             **handler_dict,
-            **{"filename": os.path.join(logdir, "access.log")},
+            **{"filename": os.path.join(logdir, "access.log"),
+               "formatter": "access"},
         },
     },
     formatters={
@@ -88,9 +89,9 @@ LOG_SETTINGS = dict(
 )
 
 if production:
-    app = Sanic("redirector", log_config=LOG_SETTINGS)
+    app = Sanic("shub-ro", log_config=LOG_SETTINGS)
 else:
-    app = Sanic("redirector")
+    app = Sanic("shub-ro")
 CORS(app)
 
 
@@ -114,8 +115,8 @@ async def init(app, loop):
     sem = asyncio.Semaphore(100)
 
 
-@app.route("/(|about|collections/my|labels)", methods=["GET"])
-async def main(request):
+@app.route("/<common:(|about|collections/my|labels)>", methods=["GET"])
+async def main(request, common):
     return response.redirect(GOTO_URL)
 
 # TODO: should we do something special about /labels etc?
@@ -137,7 +138,7 @@ async def goto_container(request, pk):
     """Parse/handle the query
     """
     try:
-        collection = _data_['collections'].get(pk, None)
+        collection = (_data_['collections'].get(str(pk)) or {}).get('full_name')
         if collection:
             return response.redirect(f"{GOTO_URL}/{collection}")
         return response.json(
@@ -160,16 +161,6 @@ async def goto_container(request, org, repo, tag):
     try:
         name = f"{org}/{repo}"
         collection = _data_['images'].get(name, None)
-        # debug
-        # return response.json(
-        #     {
-        #         "name": name,
-        #         "org": org,
-        #         "repo": repo,
-        #         "collection": collection,
-        #         "found": bool(collection)},
-        #     headers=headers
-        # )
         if collection:
             if tag and tag.startswith(':'):
                 tag = tag[1:]
