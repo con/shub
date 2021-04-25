@@ -20,9 +20,9 @@ from sanic import response
 from sanic_cors import CORS
 
 # TODO: move from repronim to hub
-GOTO_URL = "https://datasets.datalad.org/?dir=/repronim"
+GOTO_URL = "https://datasets.datalad.org/?dir=/shub"
 # it is difference since this is direct url without web ui
-TOP_URL = "https://datasets.datalad.org/repronim"
+TOP_URL = "https://datasets.datalad.org/shub"
 
 # TODO: do establish logging for deployed instance
 
@@ -114,9 +114,12 @@ async def init(app, loop):
     sem = asyncio.Semaphore(100)
 
 
-@app.route("/", methods=["GET"])
+@app.route("/(|about|collections/my|labels)", methods=["GET"])
 async def main(request):
     return response.redirect(GOTO_URL)
+
+# TODO: should we do something special about /labels etc?
+# and also: /apps (could be datalad container?), and /tags
 
 #
 # Since Yarik knows no sanic etc, he would just populate
@@ -129,13 +132,34 @@ headers = {
 }
 
 
+@app.route("collections/<pk:\d+>", methods=["GET", "HEAD"])
+async def goto_container(request, pk):
+    """Parse/handle the query
+    """
+    try:
+        collection = _data_['collections'].get(pk, None)
+        if collection:
+            return response.redirect(f"{GOTO_URL}/{collection}")
+        return response.json(
+            {"detail": "Not found."},
+            status=404,
+            headers=headers
+        )
+    except Exception as exc:
+        return response.json(
+            {"detail": f"Exception {exc}"},
+            status=500,
+            headers=headers
+        )
+
+
 @app.route("container/<org:[^/]+>/<repo:[^/:]+><tag:.*>", methods=["GET", "HEAD"])
-async def goto_dandiset(request, org, repo, tag):
+async def goto_container(request, org, repo, tag):
     """Parse/handle the query
     """
     try:
         name = f"{org}/{repo}"
-        collection = _data_['records'].get(name, None)
+        collection = _data_['images'].get(name, None)
         # debug
         # return response.json(
         #     {
@@ -173,14 +197,17 @@ def main(json_path):
     with open(json_path) as f:
         raw = json.load(f)
 
+    assert set(raw) == {'images', 'collections'}
+    _data_['collections'] = raw['collections']
+
     # prepare target complete records to return
     # Decided to keep this logic here so we could adjust
     # matching without needing to regenerate input file
-    logger.info("Preparing final records")
+    logger.info("Preparing final images records")
     # to ease comparison etc
     fields_order = 'id', 'name', 'branch', 'commit', 'tag', 'version', 'size_mb', 'image', 'build_date'
-    _data_['records'] = recs = {}
-    for name, files in raw.items():
+    recs = {}
+    for name, files in raw['images'].items():
         recs[name] = res = {}  # tag: { ready image record }
         for f in files:
             rec = f.copy()
@@ -209,6 +236,7 @@ def main(json_path):
             # multiple tags
             r.pop('build_date', None)
 
+    _data_['images'] = recs
     logger.info("Starting backend")
     app.run(host="0.0.0.0", port=5003)
 
