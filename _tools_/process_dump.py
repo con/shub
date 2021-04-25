@@ -200,11 +200,13 @@ def dump_data(dump_path, monolith_path, output_json):
                 'license': repo.get('license'),
                 'full_name': full_name,
             }
-            if not (monolith_path / full_name).is_dir():
-                # print(f"WARNING: no monolith dir for {r['pk']}: {full_name}")
-                missing_dir[int(r['pk'])] = rec
-            else:
-                collections[int(r['pk'])] = rec
+            # Don't do check here -- some collections might not correspond since
+            # might have been renamed etc. So we will just store all
+            # if not (monolith_path / full_name).is_dir():
+            #     # print(f"WARNING: no monolith dir for {r['pk']}: {full_name}")
+            #     missing_dir[int(r['pk'])] = rec
+            # else:
+            collections[int(r['pk'])] = rec
     print(f"INFO: collected {len(collections)} collections")
     if missing_dir:
         print(
@@ -258,15 +260,19 @@ def rename_remove(monolith_path, images_json):
     with open(images_json) as f:
         data = json.load(f)
 
+    # Tired yoh cannot get it why we ending up with string keys in json - not supported?
+    for pk in list(data['collections']):
+        data['collections'][int(pk)] = data['collections'].pop(pk)
+
     # Remove all collections which are not included
-    known_collections = {r['full_name']: pk for pk, r in data['collections'].items()}
+    known_collections = {r['full_name']: int(pk) for pk, r in data['collections'].items()}
     # Add those which might have been renamed but still present under original names
     # in the actual container images file tree
     for col, containers in data['images'].items():
         for r in containers:
             col_ = op.join(*Path(r['file_orig']).parts[:2])
             if col_ in known_collections:
-                assert known_collections[col_] == r['collection']
+                assert known_collections[col_] == int(r['collection'])
             else:
                 known_collections[col_] = r['collection']
                 # and we need to adjust mapping since that is where it would be found now
