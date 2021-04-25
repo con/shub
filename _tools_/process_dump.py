@@ -32,6 +32,8 @@ __license__ = 'MIT'
 import base64
 from collections import defaultdict
 import click
+import itertools
+import os.path as op
 import re
 import tqdm
 import json
@@ -71,14 +73,19 @@ def from_annex_key(key):
     assert res
     return res.groupdict()
 
+@click.group()
+def main():
+    pass
 
-@click.command()
+
+@main.command()
 @click.argument("dump_path", type=click.Path(exists=True, file_okay=False))
 @click.argument("monolith_path", type=click.Path(exists=True, file_okay=False))
 @click.argument("output_json", type=click.Path(exists=False, file_okay=True))
 # TODO: option to point to filestore so we could check
-def main(dump_path, monolith_path, output_json):
+def dump_data(dump_path, monolith_path, output_json):
     recs = defaultdict(list)
+    monolith_path = Path(monolith_path)
     with (Path(dump_path) / "main.container.json").open() as f:
         orig_recs = json.load(f)
         for dbrec in tqdm.tqdm(orig_recs):
@@ -131,7 +138,7 @@ def main(dump_path, monolith_path, output_json):
                 assert target_file
                 img_url = target_file['mediaLink']
             mon_relpath = get_path_from_url(img_url)
-            mon_path = (Path(monolith_path) / mon_relpath)
+            mon_path = (monolith_path / mon_relpath)
             if not mon_path.is_symlink():
                 raise RuntimeError(f"Found no symlink under {mon_path}")
             annex_key_parsed = from_annex_key(mon_path.readlink().name)
@@ -167,7 +174,9 @@ def main(dump_path, monolith_path, output_json):
 
     # TODO: traverse monolith and ensure that we do no have some images which
     # are not in our output record
-    all_under_monolith = (str(p.relative_to(monolith_path)) for p in Path(monolith_path).glob('*/*'))
+    # Part1 : report (no act) on entire collections
+    # Part2 : filtering and reshaping paths I think I will do in a separate command
+    all_under_monolith = (str(p.relative_to(monolith_path)) for p in monolith_path.glob('*/*'))
     all_under_monolith = set(x for x in all_under_monolith if not (x.startswith('.') or x.startswith('_')))
 
     # should be given since we did test all the images above
@@ -178,8 +187,86 @@ def main(dump_path, monolith_path, output_json):
         print(
             f"WARNING: found {len(loose_collections)}  out of {len(all_under_monolith)} loose collections "
             f"(having no image in main.container.json): {loose_collections}")
+
+    collections = {}
+    missing_dir = {}
+    with (Path(dump_path) / "main.collection.json").open() as f:
+        orig_recs = json.load(f)
+        for r in orig_recs:
+            repo = ((r.get('fields') or {}).get("repo") or {})
+            full_name = repo.get('full_name')
+            rec = {
+                'license': repo.get('license'),
+                'full_name': full_name,
+            }
+            if not (monolith_path / full_name).is_dir():
+                # print(f"WARNING: no monolith dir for {r['pk']}: {full_name}")
+                missing_dir[r['pk']] = rec
+            else:
+                collections[r['pk']] = rec
+    print(f"INFO: collected {len(collections)} collections")
+    if missing_dir:
+        print(
+            f"WARNING: following {len(missing_dir)} collections had nothing in monolith, and thus skipped:"
+            f" {(', '.join(map(str, missing_dir)))}"
+        )
+
+    for collection, containers in recs.items():
+        for container in containers:
+            container.update(get_shorter_file_rec(container))
+
+    data = {
+        "images": recs,
+        "collections": collections,
+    }
     with open(output_json, 'w') as f:
-        json.dump(recs, f, indent=2)  # TODO: remove indent for production
+        json.dump(data, f, indent=2)
+
+
+def get_shorter_file_rec(r):
+    r_ = r.copy()
+    if 'file_orig' in r:
+        # rerunning?
+        f = r.get('file_orig')
+    else:
+        f = r.get('file')
+    assert f
+    r_['file_orig'] = f
+    p = Path(f)
+    pp = p.parts
+    assert len(pp) == 5  # we must be consistent now
+    new_pp = [
+        pp[0], pp[1],
+        r_['tag'],
+        # shorter and hopefully a bit more useful than full hex strings 2nd level directory
+        f"{r_['build_date'][:10]}-{r_['commit'][:8]}-{pp[3][:8]}",
+        pp[-1]  # filename original
+    ]
+    r_['file'] = op.join(*new_pp)
+    return r_
+
+
+@main.command()
+@click.argument("monolith_path", type=click.Path(exists=True, file_okay=False))
+@click.argument("images_json", type=click.Path(exists=True, file_okay=True))
+# TODO: option to point to filestore so we could check
+def rename_remove(monolith_path, images_json):
+    """Take new "file" paths and rename, and also remove those which are not known"""
+    with open(images_json) as f:
+        data = json.load(f)
+
+    dirs_under_monolith = set(str(p.relative_to(monolith_path)) for p in Path(monolith_path).glob('*/*/*/*'))
+#    dirs_images = itertools.chain(*([op.dirname(x['file']) for x in recs] for recs in images.values()))
+    # all_under_monolith = set(x for x in all_under_monolith if not (x.startswith('.') or x.startswith('_')))
+
+    for collection, containers in data['images'].items():
+        for container in containers:
+            container.update(get_shorter_file_rec(container))
+
+    import pdb; pdb.set_trace()
+
+    with open(images_json, 'w') as f:
+        json.dump(data, f, indent=2)  # TODO: remove indent for production
 
 
 if __name__ == '__main__':
