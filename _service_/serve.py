@@ -29,9 +29,10 @@ TOP_URL = "https://datasets.datalad.org/shub"
 production = "DEV628cc89a6444" not in os.environ
 sem = None
 basedir = os.getcwd() # environ["HOME"] if production else os.getcwd()
-logdir = os.path.join(basedir, "_logs_", "sanic")
-if not os.path.exists(logdir):
-    os.makedirs(logdir, mode=0o700, exist_ok=True)
+if production:
+    logdir = '/srv/datasets.datalad.org/secure/logs/shub'
+    if not os.path.exists(logdir):
+        os.makedirs(logdir, mode=0o700, exist_ok=True)
 
 handler_dict = {
     "class": "logging.handlers.TimedRotatingFileHandler",
