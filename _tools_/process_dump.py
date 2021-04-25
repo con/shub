@@ -282,7 +282,7 @@ def rename_remove(monolith_path, images_json):
                 known_collections[col_] = r['collection']
                 # and we need to adjust mapping since that is where it would be found now
                 rcol = data['collections'][r['collection']]
-                if 'full_name_orig' not in rcol:
+                if 'full_name_orig' not in rcol and rcol['full_name'] != col_:
                     rcol['full_name_orig'] = rcol['full_name']
                 rcol['full_name'] = col_
 
