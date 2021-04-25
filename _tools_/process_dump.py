@@ -259,7 +259,21 @@ def rename_remove(monolith_path, images_json):
         data = json.load(f)
 
     # Remove all collections which are not included
-    known_collections = [r['full_name'] for r in data['collections'].values()]
+    known_collections = {r['full_name']: pk for pk, r in data['collections'].items()}
+    # Add those which might have been renamed but still present under original names
+    # in the actual container images file tree
+    for col, containers in data['images'].items():
+        for r in containers:
+            col_ = op.join(Path(r['file_orig']).parts[:2])
+            if col_ in known_collections:
+                assert known_collections[col_] == r['collection']
+            else:
+                known_collections[col_] = r['collection']
+                # and we need to adjust mapping since that is where it would be found now
+                rcol = data['collections'][r['collection']]
+                if 'full_name_orig' not in rcol:
+                    rcol['full_name_orig'] = rcol['full_name']
+                rcol['full_name'] = col_
 
     dirs_under_monolith = set(str(p.relative_to(monolith_path)) for p in Path(monolith_path).glob('*/*/*/*'))
     dirs_under_monolith = set(x for x in dirs_under_monolith if not (x.startswith('.') or x.startswith('_')))
@@ -267,20 +281,23 @@ def rename_remove(monolith_path, images_json):
     cols_under_monolith = defaultdict(list)
     for d in dirs_under_monolith:
         cols_under_monolith[op.join(*Path(d).parts[:2])].append(d)
+
+    dirs_images = list(itertools.chain(
+        *([op.dirname(x['file']) for x in recs] for recs in data['images'].values())
+    ))
+    # import pdb; pdb.set_trace()
+
     for c, dirs in cols_under_monolith.items():
         if c not in known_collections:
             print(f"Removing {c}")
-            repo.call_git(['rm', '-rf', c])
+            ## repo.call_git(['rm', '-rf', c])
         else:
             print(f"Renaming for {c}")
             # for container
 
-    dirs_images = itertools.chain(
-        *([op.dirname(x['file']) for x in recs] for recs in data['images'].values())
-    )
-
-    #
-    import pdb; pdb.set_trace()
+    # we might have adjusted collections
+    with open(images_json, 'w') as f:
+        json.dump(data, f, indent=2)
 
 
 if __name__ == '__main__':
