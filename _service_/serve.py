@@ -231,9 +231,10 @@ def main(json_path):
                 res[id_] = rec
         if 'latest' not in res:
             n_latest += 1
-            print(f"{n_latest:02d}/{len(raw['images'])} {name}: "
-                  f"adding detected 'latest' among {len(files)} records: "
-                  f"tag {latest['tag']} from {latest['build_date']}")
+            if not production:
+                print(f"{n_latest:02d}/{len(raw['images'])} {name}: "
+                      f"adding detected 'latest' among {len(files)} records: "
+                      f"tag {latest['tag']} from {latest['build_date']}")
             res['latest'] = latest
 
     # strip away all build_date's
