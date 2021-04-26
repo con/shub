@@ -1,4 +1,4 @@
 click
 requests
 sanic>=20.12,<20.13
-sanic-cors
+sanic-cors~=0.10

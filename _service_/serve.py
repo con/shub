@@ -33,6 +33,8 @@ if production:
     logdir = '/srv/datasets.datalad.org/shub/logs'
     if not os.path.exists(logdir):
         os.makedirs(logdir, mode=0o700, exist_ok=True)
+else:
+    logdir = os.getcwd()  # should not even be used
 
 handler_dict = {
     "class": "logging.handlers.TimedRotatingFileHandler",
@@ -199,8 +201,10 @@ def main(json_path):
     # to ease comparison etc
     fields_order = 'id', 'name', 'branch', 'commit', 'tag', 'version', 'size_mb', 'image', 'build_date'
     recs = {}
+    n_latest = 0
     for name, files in raw['images'].items():
         recs[name] = res = {}  # tag: { ready image record }
+        latest = None
         for f in files:
             rec = f.copy()
             rec['name'] = name
@@ -210,6 +214,11 @@ def main(json_path):
             rec = {
                 _: rec[_] for _ in fields_order if _ in rec
             }
+            # paranoia
+            if latest is not None and latest['build_date'] == rec['build_date']:
+                raise RuntimeError(f"Found the one with the same date for {rec}")
+            if latest is None or latest['build_date'] < rec['build_date']:
+                latest = rec
             # what lookups are "supported
             for id_field in 'tag', 'version':
                 id_ = f[id_field]
@@ -220,6 +229,12 @@ def main(json_path):
                     if res[id_]['build_date'] > rec['build_date']:
                         continue  # we do not replace
                 res[id_] = rec
+        if 'latest' not in res:
+            n_latest += 1
+            print(f"{n_latest:02d}/{len(raw['images'])} {name}: "
+                  f"adding detected 'latest' among {len(files)} records: "
+                  f"tag {latest['tag']} from {latest['build_date']}")
+            res['latest'] = latest
 
     # strip away all build_date's
     for _, tags in recs.items():
