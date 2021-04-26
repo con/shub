@@ -33,9 +33,9 @@ As this is just intended to provide a historical archive, no further development
 
 ## For developers
 
-- `_service_/`[_service_] directory in this dataset contains code and container for a lightweight sanic webserver to serve shub:// urls to `singularity` client.
+- [`_service_/`](_service_/) directory in this dataset contains code and container for a lightweight sanic webserver to serve shub:// urls to `singularity` client.
   - [`_data_/images.json`](_data_/images.json) - the harmonized metadata used by the sanic webserver
-- `_tools_/` - original scripts used to prepare this dataset and `images.json`
+- [`_tools_/`](_tools_/) - original scripts used to prepare this dataset and `images.json`
 
 # Acknowledgements
 
