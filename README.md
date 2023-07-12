@@ -23,6 +23,10 @@ You can `datalad install ///shub` to obtain entire collection on your harddrive 
 If you are to go DataLad route, we would advise you to install this dataset as a subdataset within your specific study/analysis dataset, so you do not only have a "copy" of it, but also have a provenance record on where you have obtained it from.
 Such setup follows ["YODA principles"](https://github.com/myyoda/myyoda) we encourage you to familiarize yourself with.  
 
+### Search
+
+There is an alternative web-frontend to it at [https://singularityhub.github.io/singularityhub-archive/](https://singularityhub.github.io/singularityhub-archive/) which provides search capabilities if you need to find a specific container.
+
 ### DataLad-container
 
 TODO: Populate datalad-container configuration (see [https://github.com/con/shub/issues/1](https://github.com/con/shub/issues/1))
