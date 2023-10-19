@@ -40,7 +40,7 @@ handler_dict = {
     "class": "logging.handlers.TimedRotatingFileHandler",
     "when": "D",
     "interval": 7,
-    "backupCount": 10,
+    "backupCount": 10000, # keep all
     "formatter": "generic",
 }
 LOG_SETTINGS = dict(
